@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.utils.crypto import get_random_string
 from django.utils import timezone
 from datetime import timedelta
-from .models import PhoneVerification, DoctorProfile, User
+from .models import PhoneVerification, User
 import re
 
 class PatientRegistrationSerializer(serializers.ModelSerializer):
