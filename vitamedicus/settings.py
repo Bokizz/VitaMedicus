@@ -75,6 +75,7 @@ WSGI_APPLICATION = 'vitamedicus.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+AUTH_USER_MODEL = 'accounts.User'
 
 DATABASES = {
     'default': {
