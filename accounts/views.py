@@ -6,11 +6,31 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.utils.crypto import get_random_string
 from datetime import timedelta
-from .serializers import PatientRegistrationSerializer, VerifyPhoneSerializer, ResendSMSSerializer
-from .models import PhoneVerification
+from .serializers import PatientRegistrationSerializer, VerifyPhoneSerializer, ResendSMSSerializer, DoctorRegistrationSerializer
+from .models import PhoneVerification,Doctor
 
 class PatientRegistrationView(generics.CreateAPIView):
     serializer_class = PatientRegistrationSerializer
+
+class DoctorRegistrationView(generics.CreateAPIView):
+    queryset = Doctor.objects.all()
+    serializer_class = DoctorRegistrationSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data = request.data)
+        serializer.is_valid(raise_exception = True)
+        doctor = serializer.save()
+
+        headers = self.get_success_headers(serializer.data)
+
+        return Response({
+            "message": "Doctor registered successfully. Waiting for admin approval.",
+            "doctor_id": doctor.id,
+            "approved": doctor.approved
+        },
+            status=status.HTTP_201_CREATED,
+            headers=headers
+        )
 
 class VerifyPhoneView(APIView):
     def post(self, request):
