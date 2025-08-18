@@ -54,14 +54,45 @@ class PhoneVerification(models.Model):
         return f"Verification for {self.user.phone_number}"
 # Create your models here.
 
-# class DoctorProfile(models.Model):
-#     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name = 'doctor_profile')
-#     hospital = models.ForeignKey('hospitals.Hospital', on_delete = models.SET_NULL,null = True, blank = True)
-#     clinic = models.ManyToManyField('hospitals.Clinic', related_name='doctors',blank = True)
-#     is_approved = models.BooleanField(default = False)
-#     specialization = models.CharField(max_length = 50, blank = True)
+class Doctor(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, 
+                                on_delete=models.CASCADE,
+                                related_name = 'doctor',
+                                limit_choices_to={'role':'doctor'}
+                                )
+    hospital = models.ForeignKey('hospitals.Hospital', 
+                                related_name = 'hospital_doctors',
+                                blank = True,
+                                on_delete=models.SET_NULL,
+                                null = True
+                                )
+    approved = models.BooleanField(default = False)
+    specialization = models.CharField(max_length = 50, blank = True,
+                                      choices = [
+        ("cardiology", "Кардиологија"),
+        ("neurology", "Неврологија"),
+        ("pediatrics", "Педијатрија"),
+        ("orthopedics", "Ортопедија"),
+        ("psychiatry", "Психијатрија"),
+    ])
 
-#     def __str__(self):
-#         return f"Doctor Profile: {self.user.get_full_name()} -{self.specialization or 'NON'}"
+    def __str__(self):
+        return f"Доктор: {self.user.get_full_name()}, специјализација:{self.specialization or 'NON'}"
     
-
+    @property
+    def approved_departments(self):
+        from hospitals.models import Department
+        """Departments where this doctor is approved."""
+        return Department.objects.filter(
+            doctors_requests__doctor = self,
+            doctors_requests__approved = True
+        )
+    
+    @property
+    def pending_department_requests(self):
+        from hospitals.models import Department
+        """Departments where the doctor has requested but is not yet approved."""
+        return Department.objects.filter(
+            doctors_requests__doctor = self,
+            doctors_requests__approved = False
+        )
