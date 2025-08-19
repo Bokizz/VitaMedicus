@@ -15,8 +15,10 @@ class UserManager(BaseUserManager):
     def create_superuser(self, phone_number, password = None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('role','admin')
         return self.create_user(phone_number, password, **extra_fields)
 
+    
 class User(AbstractBaseUser, PermissionsMixin):
     ROLE_CHOICES = [
         ('patient', 'Patient'),
@@ -77,7 +79,7 @@ class Doctor(models.Model):
     ])
 
     def __str__(self):
-        return f"Доктор: {self.user.get_full_name()}, специјализација:{self.specialization or 'NON'}"
+        return f"Доктор: {self.user.first_name} {self.user.last_name}, специјализација:{self.specialization or 'NON'}"
     
     @property
     def approved_departments(self):

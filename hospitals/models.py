@@ -79,7 +79,7 @@ class DoctorDepartmentAssignment(models.Model):
         verbose_name_plural = "Doctor Department Assignments"
     def __str__(self):
         status = "Approved" if self.approved else "Pending"
-        return f"{self.doctor.user.get_full_name()} -> {self.department.name} ({status})"
+        return f"Др. {self.doctor.user.first_name} {self.doctor.user.last_name} бара одобрение за одделението за {self.department.name} ({status})"
     
 class DoctorService(models.Model):
     doctor = models.ForeignKey(
@@ -99,4 +99,4 @@ class DoctorService(models.Model):
         unique_together = ('doctor','service')
 
     def __str__(self):
-        return f"{self.doctor.user.get_full_name()} - {self.service.name}"
+        return f"Др. {self.doctor.user.first_name} {self.doctor.user.last_name} бара одобрение за {self.service.name}"

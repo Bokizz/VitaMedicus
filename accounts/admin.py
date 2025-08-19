@@ -45,15 +45,20 @@ class ServiceAdmin(admin.ModelAdmin):
 
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "specialization", "hospital", "approved",)
+    list_display = ("id","user__first_name","user__last_name", "user", "specialization", "hospital", "approved",)
     search_fields = ("user__first_name", "user__last_name","specialization","hospital",)
     list_filter = ("hospital","approved",)
 
 @admin.register(DoctorDepartmentAssignment)
 class DoctorDepartmentAssignmentAdmin(admin.ModelAdmin):
-    list_display = ("id","doctor","department",)
+    list_display = ("id","assignment_display","approved","requested_at","approved_at",)
     search_fields = ("doctor__user__first_name","doctor__user__last_name","department__name","department__hospital__name",)
-    list_filter = ("department","department__hospital")
+    list_filter = ("department","department__hospital",)
+
+    def assignment_display(self, obj):
+        return str(obj)
+    
+    assignment_display.short_description = "Assignment"
 
 @admin.register(DoctorService)
 class DoctorServiceAdmin(admin.ModelAdmin):

@@ -64,11 +64,11 @@ class ResendSMSSerializer(serializers.Serializer):
         return value
 
 class DoctorRegistrationSerializer(serializers.ModelSerializer):
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-    phone_number = serializers.CharField(max_length = 12)
-    serial_number = serializers.CharField(max_length = 13)
-    password = serializers.CharField(write_only = True)
+    first_name = serializers.CharField(source = "user.first_name")
+    last_name = serializers.CharField(source = "user.last_name")
+    phone_number = serializers.CharField(source = "user.phone_number",max_length = 12)
+    serial_number = serializers.CharField(source = "user.serial_number",max_length = 13)
+    password = serializers.CharField(source = "user.password",write_only = True)
 
     specialization = serializers.ChoiceField(
         choices = Doctor._meta.get_field('specialization').choices
@@ -85,41 +85,44 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
         fields = ['first_name', 'last_name', 'phone_number','serial_number',
                   'password','specialization','hospital','department']
 
-        def create(self, validated_data):
-            first_name = validated_data.pop("first_name")
-            last_name = validated_data.pop("last_name")
-            phone_number = validated_data.pop("phone_number")
-            serial_number = validated_data.pop("phone_number")
-            password = validated_data.pop("password")
-            hospital = validated_data.pop("hospital")
-            department = validated_data.pop("department")
+    def create(self, validated_data):
+        user_data = validated_data.pop("user")
+        first_name = user_data.pop("first_name")
+        last_name = user_data.pop("last_name")
+        phone_number = user_data.pop("phone_number")
+        serial_number = user_data.pop("serial_number")
+        password = user_data.pop("password")
+    
+        hospital = validated_data.pop("hospital")
+        department = validated_data.pop("department")
+        specialization = validated_data.pop("specialization")
 
-            user = User.objects.create_user(
-                first_name = first_name,
-                last_name = last_name,
-                phone_number = phone_number,
-                serial_number =  serial_number,
-                password = password,
-                role = 'doctor',
-                is_active = True,
-                is_staff = True
-            )
-            user.set_password(password)
-            user.save()
 
-            doctor = Doctor.objects.create(
-                user = user,
-                specialization = specialization,
-                is_approved = False
-            )
-            doctor.hospital.add(hospital)
-            doctor.save()
+        user = User.objects.create_user(
+            first_name = first_name,
+            last_name = last_name,
+            phone_number = phone_number,
+            serial_number =  serial_number,
+            password = password,
+            role = 'doctor',
+            is_active = True,
+            is_staff = True
+        )
+        user.set_password(password)
+        user.save()
+        doctor = Doctor.objects.create(
+            user = user,
+            specialization = specialization,
+            hospital = hospital,
+            approved = False
+        )
+        doctor.save()
 
-            DoctorDepartmentAssignment.objects.create(
-                doctor = doctor,
-                department = department,
-                approved = False
-            )
+        DoctorDepartmentAssignment.objects.create(
+            doctor = doctor,
+            department = department,
+            approved = False
+        )
             
-            print(f"Pending admin approval...")
-            return doctor 
+        print(f"Pending admin approval...")
+        return doctor 
