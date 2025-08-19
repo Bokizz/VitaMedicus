@@ -101,7 +101,8 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
                 serial_number =  serial_number,
                 password = password,
                 role = 'doctor',
-                is_active = True
+                is_active = True,
+                is_staff = True
             )
             user.set_password(password)
             user.save()

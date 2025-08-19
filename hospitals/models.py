@@ -35,7 +35,7 @@ class Department(models.Model):
     phone_number = models.CharField(max_length = 15, blank = True)
 
     def __str__(self):
-        return f"Клиника {self.name}, при ({self.hospital.name})"
+        return f"Одделение за {self.name}, при клиника {self.hospital.name}"
 # Create your models here.
     @property
     def doctors(self):
