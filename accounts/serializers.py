@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.utils.crypto import get_random_string
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from django.utils import timezone
 from datetime import timedelta
 from .models import PhoneVerification, User, Doctor
@@ -77,7 +77,8 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
         queryset = Hospital.objects.all()
     )
     department = serializers.PrimaryKeyRelatedField(
-        queryset = Department.objects.all()
+        queryset = Department.objects.all(),
+        write_only = True
     )
 
     class Meta:
@@ -126,3 +127,27 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
             
         print(f"Pending admin approval...")
         return doctor 
+
+class LoginSerializer(serializers.Serializer):
+    phone_number = serializers.CharField()
+    password = serializers.CharField(write_only = True)
+
+    def validate(self, attrs):
+        phone_number = attrs.get("phone_number")
+        password = attrs.get("password")
+
+        if not phone_number or password:
+            raise serializers.ValidationError("Мора да внесете телефонски број и лозинка!")
+        
+        user = authenticate(request = self.context.get("request"),
+                            phone_number = phone_number,
+                            password = password
+                            )
+        if not user:
+            raise serializers.ValidationError("Неточни креденцијали.")
+        
+        if not user.is_active:
+            raise serializers.ValidationError("Овој профил е деактивиран.")
+        
+        attrs["user"] = user
+        return attrs
