@@ -3,12 +3,14 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.utils.crypto import get_random_string
 from datetime import timedelta
-from .serializers import PatientRegistrationSerializer, VerifyPhoneSerializer, ResendSMSSerializer, DoctorRegistrationSerializer, LoginSerializer
+from .serializers import PatientRegistrationSerializer, VerifyPhoneSerializer, ResendSMSSerializer, DoctorRegistrationSerializer, CustomTokenObtainPairSerializer
 from .models import PhoneVerification,Doctor
+from .permissions import NotBlacklisted
 
 class PatientRegistrationView(generics.CreateAPIView):
     serializer_class = PatientRegistrationSerializer
@@ -34,6 +36,7 @@ class DoctorRegistrationView(generics.CreateAPIView):
         )
 
 class VerifyPhoneView(APIView):
+    permission_classes = [NotBlacklisted]
     def post(self, request):
         serializer = VerifyPhoneSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
@@ -59,6 +62,7 @@ class VerifyPhoneView(APIView):
             return Response({"error":"Невалиден код."},status = status.HTTP_400_BAD_REQUEST)
 # Create your views here.
 class ResendSMSCodeView(generics.GenericAPIView):
+    permission_classes = [NotBlacklisted]
     serializer_class = ResendSMSSerializer
     def post(self, request):
         serializer = self.get_serializer(data = request.data)
@@ -91,23 +95,5 @@ class ResendSMSCodeView(generics.GenericAPIView):
 
         return Response({"message":"Нов верификациски код е испратен!"}, status = status.HTTP_200_OK)
 
-class LoginView(generics.GenericAPIView):
-    serializer_class = LoginSerializer
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data = request.data)
-        serializer.is_valid(raise_exception = True)
-        user = serializer.validated_data["user"]
-
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-            "user": {
-                "id": user.id,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "phone_number": user.phone_number,
-                "role": user.role,
-            }
-        },status=status.HTTP_200_OK)
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer

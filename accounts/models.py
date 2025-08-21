@@ -35,8 +35,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     is_phone_verified = models.BooleanField(default = False)
     is_active = models.BooleanField(default = True)
-    is_staff = models.BooleanField(default = True)
+    is_staff = models.BooleanField(default = False)
 
+    is_blacklisted = models.BooleanField(default = False)
+    
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = []
 

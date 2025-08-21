@@ -78,6 +78,16 @@ WSGI_APPLICATION = 'vitamedicus.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 AUTH_USER_MODEL = 'accounts.User'
 
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+        "accounts.permissions.NotBlacklisted",  # block blacklisted users everywhere
+    ],
+}
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',

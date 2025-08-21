@@ -1,4 +1,7 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.exceptions import AuthenticationFailed
 from django.utils.crypto import get_random_string
 from django.contrib.auth import get_user_model, authenticate
 from django.utils import timezone
@@ -127,27 +130,23 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
             
         print(f"Pending admin approval...")
         return doctor 
-
-class LoginSerializer(serializers.Serializer):
-    phone_number = serializers.CharField()
-    password = serializers.CharField(write_only = True)
+    
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username_field = "phone_number"
 
     def validate(self, attrs):
-        phone_number = attrs.get("phone_number")
-        password = attrs.get("password")
+        data = super().validate(attrs)
 
-        if not phone_number or password:
-            raise serializers.ValidationError("Мора да внесете телефонски број и лозинка!")
-        
-        user = authenticate(request = self.context.get("request"),
-                            phone_number = phone_number,
-                            password = password
-                            )
-        if not user:
-            raise serializers.ValidationError("Неточни креденцијали.")
-        
-        if not user.is_active:
-            raise serializers.ValidationError("Овој профил е деактивиран.")
-        
-        attrs["user"] = user
-        return attrs
+        if self.user.is_blacklisted:
+            raise AuthenticationFailed("Блокирани сте и не можете да се најавите додека не ве одблокира админ.")
+    
+        data.update({
+            "user":{
+                "id": self.user.id,
+                "first_name": self.user.first_name,
+                "last_name": self.user.last_name,
+                "phone_number": self.user.phone_number,
+                "role": self.user.role,
+            }
+        })
+        return data

@@ -6,8 +6,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 class UserAdmin(BaseUserAdmin):
     model = User
-    list_display = ("id","phone_number","first_name","last_name","role","is_active","is_staff","is_phone_verified",)
-    list_filter = ("role","is_active","is_staff",)
+    list_display = ("id","phone_number","first_name","last_name","role","is_active","is_staff","is_phone_verified","is_blacklisted",)
+    list_filter = ("role","is_active","is_staff","is_blacklisted",)
     search_fields = ("phone_number","first_name","last_name",)
     ordering = ("id",)
 
@@ -22,7 +22,7 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             "classes": ("wide"),
-            "fields":("phone_number","password1","password2","role","is_active","is_staff"),
+            "fields":("phone_number","password1","password2","role","is_active","is_staff","is_blacklisted"),
         })
     )
 
@@ -45,7 +45,7 @@ class ServiceAdmin(admin.ModelAdmin):
 
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):
-    list_display = ("id","user__first_name","user__last_name", "user", "specialization", "hospital", "approved",)
+    list_display = ("id","user__first_name","user__last_name", "user", "specialization", "hospital", "approved","user__is_blacklisted",)
     search_fields = ("user__first_name", "user__last_name","specialization","hospital",)
     list_filter = ("hospital","approved",)
 
