@@ -1,12 +1,15 @@
 from django.contrib import admin
 from .models import User, Doctor
 from hospitals.models import Hospital, Department, Service, DoctorDepartmentAssignment, DoctorService
-
+from django.utils.html import format_html
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 class UserAdmin(BaseUserAdmin):
     model = User
-    list_display = ("id","phone_number","first_name","last_name","role","is_active","is_staff","is_phone_verified","is_blacklisted",)
+    
+    list_display = ("id","phone_number","first_name","last_name",
+                    "role","is_active","is_staff","is_phone_verified",
+                    "is_blacklisted",)
     list_filter = ("role","is_active","is_staff","is_blacklisted",)
     search_fields = ("phone_number","first_name","last_name",)
     ordering = ("id",)
@@ -16,9 +19,18 @@ class UserAdmin(BaseUserAdmin):
         ("Лични податоци",{"fields":("first_name","last_name","serial_number"),}),
         ("Улога",{"fields":("role",)}),
         ("Permissions", {"fields":("is_active","is_staff","is_phone_verified","is_superuser","groups","user_permissions"),}),
-        ("Important dates",{"fields":("last_login","date_joined"),})
+        ("Important dates",{"fields":("last_login","date_joined"),}),
+        ("Blacklist", {"fields":("is_blacklisted",),}),
     )
+    list_editable = ('is_blacklisted',)
+    actions = ['blacklist_users','unblacklist_users']
+    def blacklist_users(self, queryset):
+        queryset.update(is_blacklisted=True)
+    blacklist_users.short_description = "Blacklist selected users"
 
+    def unblacklist_users(self, queryset):
+        queryset.update(is_blacklisted=False)
+    unblacklist_users.short_description = "Remove selected users from blacklist"
     add_fieldsets = (
         (None, {
             "classes": ("wide"),
