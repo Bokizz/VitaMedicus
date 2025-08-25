@@ -118,7 +118,7 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
             user = user,
             specialization = specialization,
             hospital = hospital,
-            approved = False
+            authorized = False
         )
         doctor.save()
 

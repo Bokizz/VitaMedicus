@@ -70,7 +70,7 @@ class Doctor(models.Model):
                                 on_delete=models.SET_NULL,
                                 null = True
                                 )
-    approved = models.BooleanField(default = False)
+    authorized = models.BooleanField(default = False)
     specialization = models.CharField(max_length = 50, blank = True,
                                       choices = [
         ("cardiology", "Кардиологија"),

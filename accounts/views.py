@@ -11,11 +11,12 @@ from datetime import timedelta
 from .serializers import PatientRegistrationSerializer, VerifyPhoneSerializer, ResendSMSSerializer, DoctorRegistrationSerializer, CustomTokenObtainPairSerializer
 from .models import PhoneVerification,Doctor
 from .permissions import NotBlacklisted
-
+from rest_framework import generics, permissions
 class PatientRegistrationView(generics.CreateAPIView):
     serializer_class = PatientRegistrationSerializer
-
+    permission_classes = [permissions.AllowAny]
 class DoctorRegistrationView(generics.CreateAPIView):
+    permission_classes = [permissions.AllowAny]
     queryset = Doctor.objects.all()
     serializer_class = DoctorRegistrationSerializer
 
@@ -29,14 +30,15 @@ class DoctorRegistrationView(generics.CreateAPIView):
         return Response({
             "message": "Doctor registered successfully. Waiting for admin approval.",
             "doctor_id": doctor.id,
-            "approved": doctor.approved
+            "authorized": doctor.authorized
         },
             status=status.HTTP_201_CREATED,
             headers=headers
         )
 
 class VerifyPhoneView(APIView):
-    permission_classes = [NotBlacklisted]
+    permission_classes = [NotBlacklisted,permissions.AllowAny]
+
     def post(self, request):
         serializer = VerifyPhoneSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
@@ -62,7 +64,7 @@ class VerifyPhoneView(APIView):
             return Response({"error":"Невалиден код."},status = status.HTTP_400_BAD_REQUEST)
 # Create your views here.
 class ResendSMSCodeView(generics.GenericAPIView):
-    permission_classes = [NotBlacklisted]
+    permission_classes = [NotBlacklisted,permissions.AllowAny]
     serializer_class = ResendSMSSerializer
     def post(self, request):
         serializer = self.get_serializer(data = request.data)
