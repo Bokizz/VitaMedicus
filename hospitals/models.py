@@ -1,3 +1,5 @@
+import qrcode
+from io import BytesIO
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -15,7 +17,24 @@ class Hospital(models.Model):
                                     decimal_places=6, 
                                     null = True, blank = True)
     phone_number = models.CharField(max_length = 15, blank  = True)
+    qr_code = models.ImageField(upload_to="hospital_qrcodes/", blank = True, null = True)
 
+    def save(self,*args,**kwargs):
+        if self.latitude and self.longitude:
+            maps_url = f"https://www.google.com/maps?q={self.latitude},{self.longitude}"
+        elif self.address:
+            maps_url = f"https://www.google.com/maps/search/?api=1&query={self.address}"
+        else:
+            maps_url = None
+        
+        if maps_url:
+            qr = qrcode.make(maps_url)
+            buffer = BytesIO()
+            qr.save(buffer, format="PNG")
+            file_name = f"{self.name}_qr.png"
+            self.qr_code.save(file_name, ContentFile(buffer.getvalue()), save = False)
+
+        super().save(*args,**kwargs)
     def __str__(self):
         return self.name
     
@@ -41,8 +60,8 @@ class Department(models.Model):
     def doctors(self):
         """"Return all doctors working in this department."""
         return Doctor.objects.filter(
-            department = self,
-            approved = True
+            department_requests__department = self,
+            department_requests__approved = True
         ).select_related('user')
     
 class Service(models.Model):
@@ -77,6 +96,13 @@ class DoctorDepartmentAssignment(models.Model):
         ] # da nema duplikat baranja
         verbose_name = "Doctor Department Assignment"
         verbose_name_plural = "Doctor Department Assignments"
+    def approve(self):
+        """Approve this assignment (irreversible)."""
+        if not self.approved:  # only approve if not already approved
+            self.approved = True
+            from django.utils import timezone
+            self.approved_at = timezone.now()
+            self.save()
     def __str__(self):
         status = "Approved" if self.approved else "Pending"
         return f"Др. {self.doctor.user.first_name} {self.doctor.user.last_name} бара одобрение за одделението за {self.department.name} ({status})"
