@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,PermissionsMixin
 from django.core.validators import RegexValidator
 from django.conf import settings
+from django.utils import timezone
 
 class UserManager(BaseUserManager):
     def create_user(self, phone_number, password = None, **extra_fields):
@@ -38,6 +39,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default = False)
 
     is_blacklisted = models.BooleanField(default = False)
+    date_joined = models.DateTimeField(default=timezone.now())
     
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = []
@@ -79,6 +81,7 @@ class Doctor(models.Model):
         ("orthopedics", "Ортопедија"),
         ("psychiatry", "Психијатрија"),
     ])
+    #rating foreign key
 
     def __str__(self):
         return f"Доктор: {self.user.first_name} {self.user.last_name}, специјализација:{self.specialization or 'NON'}"

@@ -7,19 +7,39 @@ from django.contrib.auth import get_user_model, authenticate
 from django.utils import timezone
 from datetime import timedelta
 from .models import PhoneVerification, User, Doctor
-from hospitals.models import Hospital, Department, DoctorDepartmentAssignment
+from hospitals.models import *
 import re
 
 
 class PatientRegistrationSerializer(serializers.ModelSerializer):
+    confirm_password = serializers.CharField(
+        write_only=True,
+        label="Потврди лозинка",
+        style={'input_type': 'password'}
+    )
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'phone_number', 'serial_number', 'password']
+        fields = ['first_name', 
+                  'last_name', 
+                  'phone_number', 
+                  'serial_number', 
+                  'password',
+                  'confirm_password']
         extra_kwargs = {
-            'password':{'write_only':True}
+            'password': {'write_only': True, 'label': 'Лозинка', 'style' : {'input_type': 'password'}},
+            'first_name': {'label': 'Име'},
+            'last_name': {'label': 'Презиме'},
+            'phone_number': {'label': 'Телефонски број'},
+            'serial_number': {'label': 'Матичен број'},
         }
+    def validate(self, attrs):
+        if attrs['password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({"confirm_password": "Не соодветствуваат лозинките! Обидете се повторно."})
+        return attrs        
 
     def create(self, validated_data):
+        validated_data.pop('confirm_password')
+
         user = User.objects.create_user(
             first_name = validated_data['first_name'],
             last_name = validated_data['last_name'],
@@ -43,12 +63,20 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 class VerifyPhoneSerializer(serializers.Serializer):
-    phone_number = serializers.CharField(max_length = 12)
-    code = serializers.CharField(max_length = 6)
+    phone_number = serializers.CharField(
+        max_length=12,
+        help_text="Внесете го телефонскиот број во формат +3897XXXXXXX",
+        label="Телефонски број"
+    )
+    code = serializers.CharField(
+        max_length=6,
+        help_text="Внесете го 6-цифрениот код што ви беше пратен по SMS",
+        label = "Верификациски код"
+    )
     
     def validate_phone_number(self, value):
         pattern = r"^\+3897\d{7}$"
-        if not re.match(pattern,value):
+        if not re.match(pattern, value):
             raise serializers.ValidationError("Невалиден телефонски број!")
         return value
     
@@ -56,39 +84,69 @@ class VerifyPhoneSerializer(serializers.Serializer):
         if not value.isdigit() or len(value) != 6:
             raise serializers.ValidationError("Кодот мора да е 6 цифри долг")
         return value
-    
+
+
 class ResendSMSSerializer(serializers.Serializer):
-    phone_number = serializers.CharField(max_length = 12)
+    phone_number = serializers.CharField(
+        max_length=12,
+        help_text="Внесете го телефонскиот број во формат +3897XXXXXXX",
+        label="Телефонски број"
+    )
 
     def validate_phone_number(self, value):
         pattern = r"^\+3897\d{7}$"
         if not re.match(pattern, value):
             raise serializers.ValidationError("Невалиден телефонски број!")
         return value
-
+    
 class DoctorRegistrationSerializer(serializers.ModelSerializer):
-    first_name = serializers.CharField(source = "user.first_name")
-    last_name = serializers.CharField(source = "user.last_name")
-    phone_number = serializers.CharField(source = "user.phone_number",max_length = 12)
-    serial_number = serializers.CharField(source = "user.serial_number",max_length = 13)
-    password = serializers.CharField(source = "user.password",write_only = True)
-
+    first_name = serializers.CharField(source = "user.first_name", label = "Име")
+    last_name = serializers.CharField(source = "user.last_name", label = "Презиме")
+    phone_number = serializers.CharField(source = "user.phone_number",max_length = 12, label="Телефонски број")
+    serial_number = serializers.CharField(source = "user.serial_number",max_length = 13, label = "Матичен број")
+    password = serializers.CharField(source = "user.password",write_only = True, label = "Лозинка",style = {'input_type': 'password'})
+    confirm_password = serializers.CharField(
+        write_only=True,
+        label="Потврди лозинка",
+        style={'input_type': 'password'}
+    )
     specialization = serializers.ChoiceField(
-        choices = Doctor._meta.get_field('specialization').choices
+        choices = Doctor._meta.get_field('specialization').choices,
+        label = "Специјализација"
     )
     hospital = serializers.PrimaryKeyRelatedField(
-        queryset = Hospital.objects.all()
+        queryset = Hospital.objects.all(),
+        label = "Назначена клиника"
     )
     department = serializers.PrimaryKeyRelatedField(
         queryset = Department.objects.all(),
-        write_only = True
+        write_only = True,
+        label = "Назначено одделение"
+    )
+    service = serializers.PrimaryKeyRelatedField(
+        queryset = Service.objects.all(),
+        write_only = True,
+        label = "Назначена услуга"
     )
 
     class Meta:
         model = Doctor
-        fields = ['first_name', 'last_name', 'phone_number','serial_number',
-                  'password','specialization','hospital','department']
-
+        fields = ['first_name', 
+                  'last_name', 
+                  'phone_number',
+                  'serial_number',
+                  'password',
+                  'confirm_password',
+                  'specialization',
+                  'hospital',
+                  'department',
+                  'service']
+        
+    def validate(self, attrs):
+        if attrs['password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({"confirm_password": "Не соодветствуваат лозинките! Обидете се повторно."})
+        return attrs
+      
     def create(self, validated_data):
         user_data = validated_data.pop("user")
         first_name = user_data.pop("first_name")
@@ -100,7 +158,7 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
         hospital = validated_data.pop("hospital")
         department = validated_data.pop("department")
         specialization = validated_data.pop("specialization")
-
+        service = validated_data.pop("service")
 
         user = User.objects.create_user(
             first_name = first_name,
@@ -127,13 +185,19 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
             department = department,
             approved = False
         )
+
+        DoctorServiceAssignment.objects.create(
+            doctor = doctor,
+            service = service,
+            approved = False
+        )
             
         print(f"Pending admin approval...")
         return doctor 
     
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = "phone_number"
-
+    
     def validate(self, attrs):
         data = super().validate(attrs)
 
