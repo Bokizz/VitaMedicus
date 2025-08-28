@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import User, Doctor
-from hospitals.models import Hospital, Department, Service, DoctorDepartmentAssignment, DoctorService
+from hospitals.models import *
 from django.utils.html import format_html
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils import timezone
@@ -136,16 +136,37 @@ class DoctorDepartmentAssignmentAdmin(admin.ModelAdmin):
         return str(obj)
     assignment_display.short_description = "Assignment"
 
-@admin.register(DoctorService)
+@admin.register(DoctorServiceAssignment)
 class DoctorServiceAdmin(admin.ModelAdmin):
     list_display = ("id", 
                     "doctor", 
-                    "service",)
+                    "service",
+                    "approved_display","requested_at",
+                    "approved_at")
     search_fields = ("doctor__user__first_name","doctor__user__last_name",
                      "service__name","service__department__name",
                      "service__department__hospital__name",)
     list_filter = ("service",)
+    actions = ['approve_assignments',]
+    
+    def save_model(self, request, obj, form, change):
+        if change:
+            if 'approved' in form.changed_data and obj.approved and not obj.approved_at:
+                obj.approved_at = timezone.now()
+        super().save_model(request, obj, form, change)
+    
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.approved:
+            return ("approved_display", "approved_at")
+        return super().get_readonly_fields(request, obj)
 
+    def approved_display(self, obj):
+        return "Approved" if obj.approved else "Not Approved"
+    approved_display.short_description = "Approved"
+    
+    def assignment_display(self, obj):
+        return str(obj)
+    assignment_display.short_description = "Assignment"
 admin.site.register(User, UserAdmin)
 
 # Register your models here.
