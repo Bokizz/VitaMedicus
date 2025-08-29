@@ -1,6 +1,8 @@
 from django.contrib import admin
 from .models import User, Doctor
 from hospitals.models import *
+from appointments.models import Appointment
+from ratings.models import Rating
 from django.utils.html import format_html
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils import timezone
@@ -167,6 +169,28 @@ class DoctorServiceAdmin(admin.ModelAdmin):
     def assignment_display(self, obj):
         return str(obj)
     assignment_display.short_description = "Assignment"
+
+    @admin.register(Appointment)
+    class AppointmentAdmin(admin.ModelAdmin):
+        list_display = ("id",
+                        "patient",
+                        "doctor",
+                        "department",
+                        "hospital",
+                        "service",
+                        "date",
+                        "start_time",
+                        "end_time",
+                        "created_at",
+                        "status")
+        search_fields = ("patient__id",
+        "doctor__id",
+        "status")
+        list_filter = (
+            "hospital__name",
+            "department__name",
+            "status")
+
 admin.site.register(User, UserAdmin)
 
 # Register your models here.
