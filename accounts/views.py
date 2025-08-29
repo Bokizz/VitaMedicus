@@ -8,11 +8,13 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.utils.crypto import get_random_string
 from datetime import timedelta
-from .serializers import PatientRegistrationSerializer, VerifyPhoneSerializer, ResendSMSSerializer, DoctorRegistrationSerializer, CustomTokenObtainPairSerializer
+from .serializers import *
 from .models import PhoneVerification,Doctor
 from .permissions import NotBlacklisted
 from rest_framework import generics, permissions
-import smtplib # dodaj smtp za emajl da prakjash
+import smtplib
+from email.mime.text import MIMEText
+
 
 class PatientRegistrationView(generics.CreateAPIView):
     serializer_class = PatientRegistrationSerializer
@@ -131,3 +133,39 @@ class ResendSMSCodeView(generics.GenericAPIView):
         )
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+class ForgotPasswordView(generics.GenericAPIView):
+    permission_classes = [NotBlacklisted]
+    serializer_class = ForgotPasswordSerializer
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            token = serializer.save()
+
+            reset_link = f"http://localhost:8000/api/accounts/reset-password/{token.token}/"
+
+            # Send email via smtplib
+            msg = MIMEText(f"Click the link to reset your password: {reset_link}")
+            msg["Subject"] = "Password Reset Request"
+            msg["From"] = settings.EMAIL_HOST_USER
+            msg["To"] = serializer.validated_data["email"]
+
+            try:
+                with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
+                    server.starttls()
+                    server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+                    server.sendmail(msg["From"], [msg["To"]], msg.as_string())
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            return Response({"message": "Password reset link sent to email."}, status=200)
+
+        return Response(serializer.errors, status=400)
+    
+class ResetPasswordView(APIView):
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Успешно ја променивте вашата лозинка!"}, status=200)
+        return Response(serializer.errors, status=400)

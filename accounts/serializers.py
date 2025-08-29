@@ -6,10 +6,9 @@ from django.utils.crypto import get_random_string
 from django.contrib.auth import get_user_model, authenticate
 from django.utils import timezone
 from datetime import timedelta
-from .models import PhoneVerification, User, Doctor
+from .models import PhoneVerification, User, Doctor, PasswordResetToken
 from hospitals.models import *
 import re
-import smtplib # dodaj smtp za emajl da prakjash
 
 class PatientRegistrationSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(
@@ -221,3 +220,48 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             }
         })
         return data
+    
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    
+    def validate_email(self, value):
+        if not User.objects.filter(email = value).exists():
+            raise serializers.ValidationError("Корисник со оваја електронска пошта не постои! Обидете се повторно.")
+        return value
+    
+    def save(self):
+        user = User.objects.get(email = self.validated_data["email"])
+        token = PasswordResetToken.objects.create(user = user)
+
+        return token
+    
+class ResetPasswordSerializer(serializers.Serializer):
+    token = serializers.UUIDField()
+    new_password = serializers.CharField(write_only = True, style = {'input_type': 'password'})
+    confirm_password = serializers.CharField(write_only = True, style = {'input_type': 'password'})
+
+    def validate(self, attrs):
+        try:
+            reset_token = PasswordResetToken.objects.get(token = attrs["token"])
+        except PasswordResetToken.DoesNotExist:
+            raise serializers.ValidationError("Невалиден или истечен рок за користење на токенот. Внесете ново барање за нова лозинка!")
+
+        if not reset_token.is_valid():
+            raise serializers.ValidationError("Истечено е времето. Внесете ново барање за нова лозинка!")
+        
+        if attrs["new_password"] != attrs["confirm_password"]:
+            raise serializers.ValidationError({"confirm_password": "Не соодветствуваат лозинките! Обидете се повторно."})        
+        
+        user = reset_token.user
+
+        if user.check_password(attrs["new_password"]):
+            raise serializers.ValidationError(
+                {"new_password": "Новата лозинка не смее да биде иста како старата."}
+            )
+        
+        attrs["user"] = user
+        return attrs
+    def save(self):
+        user = self.validated_data["user"]
+        user.set_password(self.validated_data["new_password"])
+        user.save()

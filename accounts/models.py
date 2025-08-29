@@ -3,6 +3,8 @@ from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,Permissi
 from django.core.validators import RegexValidator
 from django.conf import settings
 from django.utils import timezone
+from datetime import timedelta
+import uuid
 
 class UserManager(BaseUserManager):
     def create_user(self, phone_number, password = None, **extra_fields):
@@ -104,3 +106,12 @@ class Doctor(models.Model):
             doctors_requests__doctor = self,
             doctors_requests__approved = False
         )
+
+
+class PasswordResetToken(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self):
+        return self.created_at >= timezone.now() - timedelta(hours=1)  # 1 hour expiry
