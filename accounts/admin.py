@@ -23,7 +23,7 @@ class UserAdmin(BaseUserAdmin):
 
     fieldsets = (
         (None, {"fields": ("phone_number","password"),}),
-        ("Лични податоци",{"fields":("first_name","last_name","serial_number"),}),
+        ("Лични податоци",{"fields":("first_name","last_name","email","serial_number"),}),
         ("Улога",{"fields":("role",)}),
         ("Permissions", {"fields":("is_active","is_staff","is_phone_verified","is_superuser","groups","user_permissions"),}),
         ("Important dates",{"fields":("last_login","date_joined"),}),
@@ -96,7 +96,7 @@ class DoctorAdmin(admin.ModelAdmin):
         return obj.user.email
     email.admin_order_field = "user__email"
     email.short_description = "Email"
-    
+
     def is_blacklisted(self, obj):
         return obj.user.is_blacklisted
     is_blacklisted.short_description = "Blacklisted"
