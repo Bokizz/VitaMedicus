@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, time, date
-from .models import Appointment
+from ..models import Appointment
 
 def generate_daily_slots(app_date, doctor, service):
     today = date.today()
