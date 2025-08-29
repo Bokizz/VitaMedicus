@@ -12,6 +12,7 @@ from .serializers import PatientRegistrationSerializer, VerifyPhoneSerializer, R
 from .models import PhoneVerification,Doctor
 from .permissions import NotBlacklisted
 from rest_framework import generics, permissions
+import smtplib # dodaj smtp za emajl da prakjash
 
 class PatientRegistrationView(generics.CreateAPIView):
     serializer_class = PatientRegistrationSerializer
@@ -29,7 +30,7 @@ class DoctorRegistrationView(generics.CreateAPIView):
         headers = self.get_success_headers(serializer.data)
 
         return Response({
-            "message": "Doctor registered successfully. Waiting for admin approval.",
+            "message": "Успешно се регистриравте докторе. Останува на администраторот да ве автентицира.",
             "doctor_id": doctor.id,
             "authorized": doctor.authorized
         },

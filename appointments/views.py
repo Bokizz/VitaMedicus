@@ -3,6 +3,7 @@ from django.http import FileResponse, Http404
 from .models import Appointment
 from .utils.pdf_generator import generate_appointment_pdf
 import os
+import smtplib # dodaj smtp za emajl da prakjash
 
 def download_appointment_pdf(request, appointment_id):
     try:

@@ -9,7 +9,7 @@ from datetime import timedelta
 from .models import PhoneVerification, User, Doctor
 from hospitals.models import *
 import re
-
+import smtplib # dodaj smtp za emajl da prakjash
 
 class PatientRegistrationSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(
@@ -20,7 +20,8 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['first_name', 
-                  'last_name', 
+                  'last_name',
+                  'email', 
                   'phone_number', 
                   'serial_number', 
                   'password',
@@ -29,6 +30,7 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
             'password': {'write_only': True, 'label': 'Лозинка', 'style' : {'input_type': 'password'}},
             'first_name': {'label': 'Име'},
             'last_name': {'label': 'Презиме'},
+            'email' : {'label' : 'Електронска пошта'},
             'phone_number': {'label': 'Телефонски број'},
             'serial_number': {'label': 'Матичен број'},
         }
@@ -44,6 +46,7 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
             first_name = validated_data['first_name'],
             last_name = validated_data['last_name'],
             phone_number = validated_data['phone_number'],
+            email = validated_data['email'],
             serial_number = validated_data['serial_number'],
             password = validated_data['password'],
             role = 'patient',
@@ -103,6 +106,7 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source = "user.first_name", label = "Име")
     last_name = serializers.CharField(source = "user.last_name", label = "Презиме")
     phone_number = serializers.CharField(source = "user.phone_number",max_length = 12, label="Телефонски број")
+    email = serializers.CharField(source = "user.email", max_length = 50, label = "Електронска пошта")
     serial_number = serializers.CharField(source = "user.serial_number",max_length = 13, label = "Матичен број")
     password = serializers.CharField(source = "user.password",write_only = True, label = "Лозинка",style = {'input_type': 'password'})
     confirm_password = serializers.CharField(
@@ -133,6 +137,7 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
         model = Doctor
         fields = ['first_name', 
                   'last_name', 
+                  'email',
                   'phone_number',
                   'serial_number',
                   'password',
@@ -151,6 +156,7 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
         user_data = validated_data.pop("user")
         first_name = user_data.pop("first_name")
         last_name = user_data.pop("last_name")
+        email = user_data.pop("email")
         phone_number = user_data.pop("phone_number")
         serial_number = user_data.pop("serial_number")
         password = user_data.pop("password")
@@ -163,6 +169,7 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(
             first_name = first_name,
             last_name = last_name,
+            email = email,
             phone_number = phone_number,
             serial_number =  serial_number,
             password = password,

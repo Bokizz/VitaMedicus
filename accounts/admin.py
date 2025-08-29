@@ -9,8 +9,13 @@ from django.utils import timezone
 class UserAdmin(BaseUserAdmin):
     model = User
     
-    list_display = ("id","phone_number","first_name","last_name",
-                    "role","is_active","is_staff","is_phone_verified",
+    list_display = ("id","phone_number",
+                    "first_name","last_name",
+                    "email",
+                    "role",
+                    "is_active",
+                    "is_staff",
+                    "is_phone_verified",
                     "is_blacklisted",)
     list_filter = ("role","is_active","is_staff","is_blacklisted",)
     search_fields = ("phone_number","first_name","last_name",)
@@ -66,9 +71,14 @@ def authorize_doctors(modeladmin, request, queryset):
         doctor.save() 
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):
-    list_display = ("id","first_name","last_name",
-                     "user", "specialization", "hospital",
-                       "authorized_display","is_blacklisted",)
+    list_display = ("id",
+                    "first_name","last_name",
+                    "email",
+                    "user",
+                    "specialization",
+                    "hospital",
+                    "authorized_display",
+                    "is_blacklisted",)
     search_fields = ("user__first_name", "user__last_name",
                      "specialization","hospital",)
     list_filter = ("hospital","authorized",)
@@ -82,6 +92,11 @@ class DoctorAdmin(admin.ModelAdmin):
     last_name.admin_order_field = "user__last_name"
     last_name.short_description = "Last Name"
 
+    def email(self, obj):
+        return obj.user.email
+    email.admin_order_field = "user__email"
+    email.short_description = "Email"
+    
     def is_blacklisted(self, obj):
         return obj.user.is_blacklisted
     is_blacklisted.short_description = "Blacklisted"

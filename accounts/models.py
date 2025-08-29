@@ -29,6 +29,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     first_name = models.CharField(max_length = 15, blank = True)
     last_name = models.CharField(max_length = 30, blank = True)
+    email = models.CharField(max_length = 50, unique = True, blank = True, null = True)
     phone_regex = RegexValidator(regex = r'^\+3897\d{7}$', message = "Телефонскиот број треба да е од формат +3897XXXXXXX")
     phone_number = models.CharField(validators = [phone_regex],max_length = 12, unique = True)
     serial_number = models.CharField(max_length = 13, unique = True)
