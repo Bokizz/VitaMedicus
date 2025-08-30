@@ -145,10 +145,13 @@ class ForgotPasswordView(generics.GenericAPIView):
             reset_link = f"http://localhost:8000/api/accounts/reset-password/?token={token.token}/"
             serializer.validated_data["email"] = settings.EMAIL_HOST_USER # za testiranje
 
+            from_email = settings.EMAIL_HOST_USER
+            to_email = serializer.validated_data["email"]
+            
             msg = MIMEText(f"Click the link to reset your password: {reset_link}")
             msg["Subject"] = "Password Reset Request"
-            msg["From"] = settings.EMAIL_HOST_USER
-            msg["To"] = serializer.validated_data["email"]
+            msg["From"] = from_email
+            msg["To"] = to_email
 
             try:
                 with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
