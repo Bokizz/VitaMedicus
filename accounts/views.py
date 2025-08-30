@@ -142,9 +142,9 @@ class ForgotPasswordView(generics.GenericAPIView):
         if serializer.is_valid():
             token = serializer.save()
 
-            reset_link = f"http://localhost:8000/api/accounts/reset-password/{token.token}/"
+            reset_link = f"http://localhost:8000/api/accounts/reset-password/?token={token.token}/"
             serializer.validated_data["email"] = settings.EMAIL_HOST_USER # za testiranje
-            # Send email via smtplib
+
             msg = MIMEText(f"Click the link to reset your password: {reset_link}")
             msg["Subject"] = "Password Reset Request"
             msg["From"] = settings.EMAIL_HOST_USER
@@ -162,10 +162,27 @@ class ForgotPasswordView(generics.GenericAPIView):
 
         return Response(serializer.errors, status=400)
     
-class ResetPasswordView(APIView):
+class ResetPasswordView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny] # authenticated posle testing da se dodade
+    serializer_class = ResetPasswordSerializer
+
     def post(self, request):
-        serializer = ResetPasswordSerializer(data=request.data)
+        token = request.GET.get("token", "").rstrip("/") # token od URL
+        if not token:
+            return Response({"error": "Грешка. Обидете се повторно."}, status=400)
+
+        try:
+            reset_token = PasswordResetToken.objects.get(token=token)
+        except PasswordResetToken.DoesNotExist:
+            return Response({"error": "Невалиден обид, обидете се повторно."}, status=400)
+
+        if reset_token.is_expired():
+            return Response({"error": "Времето за промена на лозинка истече, обидете се повторно."}, status=400)
+
+        serializer = self.get_serializer(data=request.POST, context={"reset_token": reset_token})
         if serializer.is_valid():
             serializer.save()
+            reset_token.delete()  # remove token after successful use
             return Response({"message": "Успешно ја променивте вашата лозинка!"}, status=200)
+
         return Response(serializer.errors, status=400)

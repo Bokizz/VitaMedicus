@@ -113,5 +113,8 @@ class PasswordResetToken(models.Model):
     token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def is_valid(self):
-        return self.created_at >= timezone.now() - timedelta(hours=1)  # 1 hour expiry
+    def is_expired(self):
+        if self.created_at >= timezone.now() - timedelta(hours=1):  # 1 hour expiry
+            return False
+        else:
+            return True

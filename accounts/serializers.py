@@ -236,19 +236,14 @@ class ForgotPasswordSerializer(serializers.Serializer):
         return token
     
 class ResetPasswordSerializer(serializers.Serializer):
-    token = serializers.UUIDField()
     new_password = serializers.CharField(write_only = True, style = {'input_type': 'password'})
     confirm_password = serializers.CharField(write_only = True, style = {'input_type': 'password'})
 
     def validate(self, attrs):
-        try:
-            reset_token = PasswordResetToken.objects.get(token = attrs["token"])
-        except PasswordResetToken.DoesNotExist:
-            raise serializers.ValidationError("Невалиден или истечен рок за користење на токенот. Внесете ново барање за нова лозинка!")
+        reset_token = self.context.get("reset_token")
+        if not reset_token:
+            raise serializers.ValidationError("Токенот не е валиден. Обидете се повторно.")
 
-        if not reset_token.is_valid():
-            raise serializers.ValidationError("Истечено е времето. Внесете ново барање за нова лозинка!")
-        
         if attrs["new_password"] != attrs["confirm_password"]:
             raise serializers.ValidationError({"confirm_password": "Не соодветствуваат лозинките! Обидете се повторно."})        
         
@@ -261,6 +256,7 @@ class ResetPasswordSerializer(serializers.Serializer):
         
         attrs["user"] = user
         return attrs
+    
     def save(self):
         user = self.validated_data["user"]
         user.set_password(self.validated_data["new_password"])
