@@ -5,7 +5,7 @@ from .utils.pdf_generator import generate_appointment_pdf
 import os
 import smtplib # dodaj smtp za emajl da prakjash
 
-def download_appointment_pdf(request, appointment_id):
+def download_appointment_pdf(request, appointment_id): # permissions.isAuthenticated dodaj posle test
     try:
         appointment = Appointment.objects.get(id=appointment_id)
     except Appointment.DoesNotExist:

@@ -41,7 +41,7 @@ class DoctorRegistrationView(generics.CreateAPIView):
         )
 
 class VerifyPhoneView(generics.GenericAPIView):
-    permission_classes = [NotBlacklisted, permissions.AllowAny]
+    permission_classes = [NotBlacklisted, permissions.AllowAny]# permissions.isAuthenticated dodaj posle test
     serializer_class = VerifyPhoneSerializer
 
     def post(self, request):
@@ -79,7 +79,7 @@ class VerifyPhoneView(generics.GenericAPIView):
 
 
 class ResendSMSCodeView(generics.GenericAPIView):
-    permission_classes = [NotBlacklisted, permissions.AllowAny]
+    permission_classes = [NotBlacklisted, permissions.AllowAny]# permissions.isAuthenticated dodaj posle test
     serializer_class = ResendSMSSerializer
 
     def post(self, request):
@@ -135,7 +135,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 class ForgotPasswordView(generics.GenericAPIView):
-    permission_classes = [NotBlacklisted]
+    permission_classes = [NotBlacklisted]# permissions.isAuthenticated dodaj posle test
     serializer_class = ForgotPasswordSerializer
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -143,7 +143,7 @@ class ForgotPasswordView(generics.GenericAPIView):
             token = serializer.save()
 
             reset_link = f"http://localhost:8000/api/accounts/reset-password/{token.token}/"
-
+            serializer.validated_data["email"] = settings.EMAIL_HOST_USER # za testiranje
             # Send email via smtplib
             msg = MIMEText(f"Click the link to reset your password: {reset_link}")
             msg["Subject"] = "Password Reset Request"
