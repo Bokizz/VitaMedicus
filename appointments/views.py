@@ -28,7 +28,7 @@ def send_document(request, appointment_id):
         raise Http404("Не постои тој термин.")
     pdf_path = generate_appointment_pdf(appointment)
 
-    subject = "Вашиото термин - Упат"
+    subject = "Вашиот термин - Упат"
     body = "Почитуван/а,\n\nВо прилог е вашиот термин.\n\nСо почит,\nВаш VitaMedicus"
     from_email = settings.EMAIL_HOST_USER
     # to_email = appointment.patient.email posle testing kje se stavi
