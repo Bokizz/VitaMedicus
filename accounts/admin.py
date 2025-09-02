@@ -3,6 +3,7 @@ from .models import User, Doctor
 from hospitals.models import *
 from appointments.models import Appointment
 from ratings.models import *
+from subscriptions.models import Subscription
 from django.utils.html import format_html
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils import timezone
@@ -227,6 +228,16 @@ class RatingDetailAdmin(admin.ModelAdmin):
     "comment",)
     list_filter = ("entity_type","score",)
     search_fields = ("comment",)
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ("id",
+    "patient",
+    "doctor",
+    "created_at",)
+    search_fields = ("patient__phone_number",
+                     "doctor__user__phone_number",)
+
 admin.site.register(User, UserAdmin)
 
 # Register your models here.
