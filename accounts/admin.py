@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import User, Doctor
 from hospitals.models import *
 from appointments.models import Appointment
-from ratings.models import Rating
+from ratings.models import *
 from django.utils.html import format_html
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils import timezone
@@ -185,27 +185,48 @@ class DoctorServiceAdmin(admin.ModelAdmin):
         return str(obj)
     assignment_display.short_description = "Assignment"
 
-    @admin.register(Appointment)
-    class AppointmentAdmin(admin.ModelAdmin):
-        list_display = ("id",
-                        "patient",
-                        "doctor",
-                        "department",
-                        "hospital",
-                        "service",
-                        "date",
-                        "start_time",
-                        "end_time",
-                        "created_at",
-                        "status")
-        search_fields = ("patient__id",
-        "doctor__id",
+@admin.register(Appointment)
+class AppointmentAdmin(admin.ModelAdmin):
+    list_display = ("id",
+                    "patient",
+                    "doctor",
+                    "department",
+                    "hospital",
+                    "service",
+                    "date",
+                    "start_time",
+                    "end_time",
+                    "created_at",
+                    "status")
+    search_fields = ("patient__id",
+    "doctor__id",
+    "status")
+    list_filter = (
+        "hospital__name",
+        "department__name",
         "status")
-        list_filter = (
-            "hospital__name",
-            "department__name",
-            "status")
+    
+class RatingDetailInline(admin.TabularInline):
+    model = RatingDetail
+    extra = 1
 
+@admin.register(Rating)
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ("id",
+    "appointment",
+    "created_at",)
+    search_fields = ("appointment_id",)
+    inlines = [RatingDetailInline]
+@admin.register(RatingDetail)
+class RatingDetailAdmin(admin.ModelAdmin):
+    list_display = ("id",
+    "rating",
+    "entity_type",
+    "entity_id",
+    "score",
+    "comment",)
+    list_filter = ("entity_type","score",)
+    search_fields = ("comment",)
 admin.site.register(User, UserAdmin)
 
 # Register your models here.

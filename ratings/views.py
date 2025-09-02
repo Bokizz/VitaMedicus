@@ -1,15 +1,12 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
 from django.shortcuts import render
-from .models import Rating
-from .serializers import RatingSerializer
+from .models import *
+from .serializers import *
 from accounts.permissions import NotBlacklisted
 
-class RatingCreateView(generics.CreateAPIView):
-    queryset = Rating.objects.all()
-    serializer_class = RatingSerializer
-    permission_classes = [permissions.IsAuthenticated,NotBlacklisted]
+class DoctorRatingCreateView(generics.CreateAPIView):
+    serializer_class = DoctorRatingSerializer
+    permission_classes = [NotBlacklisted] # permissions.isAuthenticated dodaj posle test
 
-    def perform_create(self, serializer):
-        # Ensure rating is linked properly but patient info is not stored
-        serializer.save()
 # Create your views here.

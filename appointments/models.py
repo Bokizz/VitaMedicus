@@ -41,7 +41,7 @@ class Appointment(models.Model):
         ordering = ['date', 'start_time']
     
     def __str__(self):
-        return f"{self.patient.first_name} {self.patient.last_name} бара термин за {self.service.name} кај Доктор {self.doctor.user.first_name} {self.doctor.user.last_name} на дата {self.date} во {self.start_time} часот."
+        return f"Пациент {self.patient.first_name} {self.patient.last_name} термин за {self.service.name} кај Доктор {self.doctor.user.first_name} {self.doctor.user.last_name} на дата {self.date} во {self.start_time} часот."
 
     def can_cancel(self):
         """
