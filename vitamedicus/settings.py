@@ -45,12 +45,12 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/Skopje'
 
-CELERY_BEAT_SCHEDULE = {
-    'delete-expired-appointments': {
-        'task': 'appointments.tasks.delete_expired_appointments',
-        'schedule': crontab(minute=0, hour=0),  # every day at midnight
-    },
-}
+# CELERY_BEAT_SCHEDULE = {
+#     'delete-expired-appointments': {
+#         'task': 'appointments.tasks.delete_expired_appointments',
+#         'schedule': crontab(minute=0, hour=0),  # every day at midnight
+#     },
+# }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
