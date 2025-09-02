@@ -222,7 +222,7 @@ class RatingDetailAdmin(admin.ModelAdmin):
     list_display = ("id",
     "rating",
     "entity_type",
-    "entity_id",
+    "entity_name",
     "score",
     "comment",)
     list_filter = ("entity_type","score",)
