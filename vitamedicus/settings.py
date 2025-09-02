@@ -1,6 +1,8 @@
 from pathlib import Path
 from dotenv import load_dotenv
 import os
+from celery.schedules import crontab
+
 
 load_dotenv()
 
@@ -35,6 +37,20 @@ INSTALLED_APPS = [
     'ratings',
     'subscriptions',
 ]
+
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Europe/Skopje'
+
+CELERY_BEAT_SCHEDULE = {
+    'delete-expired-appointments': {
+        'task': 'appointments.tasks.delete_expired_appointments',
+        'schedule': crontab(minute=0, hour=0),  # every day at midnight
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

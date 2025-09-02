@@ -1,7 +1,8 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import FileResponse, Http404
 from django.conf import settings
 from .models import Appointment
+from hospitals.models import *
 from .utils.pdf_generator import generate_appointment_pdf
 import os
 import smtplib # dodaj smtp za emajl da prakjash
@@ -10,6 +11,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email import encoders
 from rest_framework.response import Response
+
 
 def download_appointment_pdf(request, appointment_id): # permissions.isAuthenticated dodaj posle test
     try:
@@ -29,7 +31,7 @@ def send_document(request, appointment_id):
     pdf_path = generate_appointment_pdf(appointment)
 
     subject = "Вашиот термин - Упат"
-    body = "Почитуван/а,\n\nВо прилог е вашиот термин.\n\nСо почит,\nВаш VitaMedicus"
+    body = "Почитуван/а,\n\nВо прилог е вашиот упат.\n\nСо почит,\nВаш VitaMedicus"
     from_email = settings.EMAIL_HOST_USER
     # to_email = appointment.patient.email posle testing kje se stavi
     to_email = settings.EMAIL_HOST_USER
