@@ -61,7 +61,6 @@ class PhoneVerification(models.Model):
 
     def __str__(self):
         return f"Verification for {self.user.phone_number}"
-# Create your models here.
 
 class Doctor(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, 

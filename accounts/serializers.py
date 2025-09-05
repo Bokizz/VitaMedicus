@@ -222,25 +222,25 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
         print(f"Pending admin approval...")
         return doctor 
     
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    username_field = "phone_number"
+# class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+#     username_field = "phone_number"
     
-    def validate(self, attrs):
-        data = super().validate(attrs)
+#     def validate(self, attrs):
+#         data = super().validate(attrs)
 
-        if self.user.is_blacklisted:
-            raise AuthenticationFailed("Блокирани сте и не можете да се најавите додека не ве одблокира админ.")
+#         if self.user.is_blacklisted:
+#             raise AuthenticationFailed("Блокирани сте и не можете да се најавите додека не ве одблокира админ.")
     
-        data.update({
-            "user":{
-                "id": self.user.id,
-                "first_name": self.user.first_name,
-                "last_name": self.user.last_name,
-                "phone_number": self.user.phone_number,
-                "role": self.user.role,
-            }
-        })
-        return data
+#         data.update({
+#             "user":{
+#                 "id": self.user.id,
+#                 "first_name": self.user.first_name,
+#                 "last_name": self.user.last_name,
+#                 "phone_number": self.user.phone_number,
+#                 "role": self.user.role,
+#             }
+#         })
+#         return data
     
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()

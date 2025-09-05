@@ -1,19 +1,19 @@
 from django.shortcuts import render
-from rest_framework import generics, status
+from django.utils import timezone
+from django.contrib.auth import get_user_model,login,logout,authenticate
+from django.utils.crypto import get_random_string
+
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView
-from django.utils import timezone
-from django.contrib.auth import get_user_model
-from django.utils.crypto import get_random_string
+
+from email.mime.text import MIMEText
 from datetime import timedelta
+
 from .serializers import *
 from .models import PhoneVerification,Doctor
 from .permissions import NotBlacklisted
-from rest_framework import generics, permissions
 import smtplib
-from email.mime.text import MIMEText
 
 
 class PatientRegistrationView(generics.CreateAPIView):
@@ -39,6 +39,46 @@ class DoctorRegistrationView(generics.CreateAPIView):
             status=status.HTTP_201_CREATED,
             headers=headers
         )
+    
+class LoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self,request):
+        phone_number = request.data.get("phone_number")
+        password = request.data.get("password")
+
+        user = authenticate(request, phone_number = phone_number, password = password)
+
+        if user is None:
+            return Response({
+                "error" : "Невалидни податоци за најавување"},
+            status=status.HTTP_401_UNAUTHORIZED
+            )
+        if user.is_blacklisted:
+            return Response(
+                {"error": "Блокирани сте и не можете да се најавите додека не ве одблокира администраторот!"},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        
+        login(request, user)
+        return Response({
+            "message" : "Успешно се најавивте!",
+            "user" : {
+                "id" : user.id,
+                "first_name" : user.first_name,
+                "last_name" : user.last_name,
+                "phone_number" : user.phone_number,
+                "role" : user.role,
+            }
+        })
+    
+class LogoutView(APIView):
+    def post(self,request):
+        logout(request)
+        return Response(
+            {"message":"Успешно се одјавивте!"},
+            status=status.HTTP_200_OK
+            )
 
 class VerifyPhoneView(generics.GenericAPIView):
     permission_classes = [NotBlacklisted, permissions.AllowAny]# permissions.isAuthenticated dodaj posle test
@@ -131,8 +171,8 @@ class ResendSMSCodeView(generics.GenericAPIView):
             {"message": "Нов верификациски код е испратен!"},
             status=status.HTTP_200_OK
         )
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
+# class CustomTokenObtainPairView(TokenObtainPairView): ZA JSON WEB TOKENS
+#     serializer_class = CustomTokenObtainPairSerializer
 
 class ForgotPasswordView(generics.GenericAPIView):
     permission_classes = [NotBlacklisted]# permissions.isAuthenticated dodaj posle test
