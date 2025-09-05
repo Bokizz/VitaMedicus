@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html> COMMENTED FOR TEST
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -10,50 +10,180 @@
 </head>
 <body>
   <h2>Клинички центри во Македонија</h2>
+  <div id="sidebar" style="width: 300px; float: left; height: 100vh; overflow-y: auto; border-right: 1px solid #ccc; padding: 10px;">
+    <input type="text" id="searchInput" placeholder="Search hospital or department..." style="width:100%; padding: 5px; margin-bottom:10px;">
+    <div id="hospitalList"></div>
+  </div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>  
+    // Center on Macedonia COMMENTED FOR TEST
+    // var map = L.map('map').setView([41.6086, 21.7453], 8);
+
+    // COMMENTED FOR TEST
+    // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    //   attribution: '© OpenStreetMap contributors'
+    // }).addTo(map);
+
+    // let markers = [];
+    
+    // COMMENTED FOR SIDEBAR TEST
+    // fetch("{% url 'hospitals_data' %}")
+    //   .then(response => response.json())
+    //   .then(data => {
+    //     data.forEach(hospital => {
+    //       console.log(hospital);
+    //       var lat = hospital.latitude;
+    //       var lng = hospital.longitude;
+    //       console.log("Parsed:", lat, lng, typeof lat, typeof lng);
+    //       if (!isNaN(lat) && !isNaN(lng)) {
+    //         var marker = L.marker([lat, lng]).addTo(map);
+    //         markers.push(marker);
+
+    //         var deptList = hospital.departments
+    //           .map(d => `<li>${d.name} (${d.phone_number || "no phone"})</li>`)
+    //           .join("");
+    //         marker.bindPopup(`
+    //           <b>${hospital.name}</b><br/>
+    //           ${hospital.address}<br/>
+    //           <ul>${deptList}</ul>
+    //         `);
+    //       }
+    //     });
+
+    //     if (markers.length > 0) {
+    //     let group = L.featureGroup(markers);
+    //     map.fitBounds(group.getBounds());
+    //   } else {
+    //     console.warn("No valid markers were added!");
+    //   }
+    //   });
+
+//   </script>
+// </body>
+// </html> COMMENTED FOR TEST
+!--> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Интерактивна мапа</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <style>
+    body { margin:0; padding:0; display:flex; height:100vh; font-family: Arial; }
+    #sidebar { width: 300px; overflow-y: auto; border-right: 1px solid #ccc; padding: 10px; box-sizing: border-box; }
+    #map { flex:1; }
+    .hospital-item:hover, .department-item:hover { background: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <input type="text" id="searchInput" placeholder="Search hospital or department..." style="width:100%; padding:5px; margin-bottom:10px;">
+    <div id="hospitalList"></div>
+  </div>
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // Center on Macedonia
-    var map = L.map('map').setView([41.6086, 21.7453], 8);
+    let hospitals = [];
+    let markers = {};
+    let map = L.map("map").setView([41.9981, 21.4254], 8); // Macedonia center
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
 
-    let markers = [];
-
+    // Load hospitals
     fetch("{% url 'hospitals_data' %}")
-      .then(response => response.json())
+      .then(res => res.json())
       .then(data => {
-        data.forEach(hospital => {
-          console.log(hospital);
-          var lat = hospital.latitude;
-          var lng = hospital.longitude;
-          console.log("Parsed:", lat, lng, typeof lat, typeof lng);
-          if (!isNaN(lat) && !isNaN(lng)) {
-            var marker = L.marker([lat, lng]).addTo(map);
-            markers.push(marker);
-
-            var deptList = hospital.departments
-              .map(d => `<li>${d.name} (${d.phone_number || "no phone"})</li>`)
-              .join("");
-            marker.bindPopup(`
-              <b>${hospital.name}</b><br/>
-              ${hospital.address}<br/>
-              <ul>${deptList}</ul>
-            `);
-          }
-        });
-
-        if (markers.length > 0) {
-        let group = L.featureGroup(markers);
-        map.fitBounds(group.getBounds());
-      } else {
-        console.warn("No valid markers were added!");
-      }
+        hospitals = data;
+        renderSidebar(hospitals);
+        addMarkers(hospitals);
       });
 
+    function addMarkers(data) {
+      data.forEach(h => {
+        if (h.latitude && h.longitude) {
+          let lat = parseFloat(h.latitude);
+          let lng = parseFloat(h.longitude);
+          if (isNaN(lat) || isNaN(lng)) return;
+
+          let marker = L.marker([lat,lng]).addTo(map);
+          markers[h.id] = marker;
+
+          let deptList = h.departments.map(d => `<li>${d.name} (${d.phone_number || "no phone"})</li>`).join("");
+          marker.bindPopup(`<b>${h.name}</b><br/>${h.address}<br/><ul>${deptList}</ul>`);
+
+          // Click on marker scrolls sidebar
+          marker.on('click', () => showHospitalDetails(h));
+        }
+      });
+    }
+
+    function renderSidebar(data, highlightDeptId=null) {
+      const container = document.getElementById("hospitalList");
+      container.innerHTML = "";
+
+      // group by town
+      let grouped = {};
+      data.forEach(h => { if (!grouped[h.town]) grouped[h.town]=[]; grouped[h.town].push(h); });
+
+      Object.keys(grouped).forEach(town => {
+        let townDiv = document.createElement("div");
+        townDiv.innerHTML = `<h3>${town}</h3>`;
+
+        grouped[town].forEach(h => {
+          let hDiv = document.createElement("div");
+          hDiv.className = "hospital-item";
+          hDiv.style.cursor = "pointer";
+          hDiv.innerHTML = `<b>${h.name}</b> - ${h.address}`;
+          hDiv.addEventListener("click", () => {
+            zoomToHospital(h.id);
+          });
+          townDiv.appendChild(hDiv);
+
+          // Departments
+          h.departments.forEach(d => {
+            if (!highlightDeptId && d.name.toLowerCase().includes(searchInput.value.toLowerCase()) || d.id === highlightDeptId) {
+              let dDiv = document.createElement("div");
+              dDiv.className = "department-item";
+              dDiv.style.cursor = "pointer";
+              dDiv.style.paddingLeft = "15px";
+              dDiv.innerHTML = `- ${d.name} (${d.phone_number || "no phone"})`;
+              dDiv.addEventListener("click", () => {
+                zoomToHospital(h.id, d.id);
+              });
+              townDiv.appendChild(dDiv);
+            }
+          });
+        });
+
+        container.appendChild(townDiv);
+      });
+    }
+
+    function zoomToHospital(hospitalId, deptId=null) {
+      const hospital = hospitals.find(h => h.id===hospitalId);
+      if (!hospital) return;
+      const marker = markers[hospital.id];
+      if (!marker) return;
+
+      map.setView(marker.getLatLng(), 14);
+      marker.openPopup();
+
+      // Update sidebar with highlight
+      renderSidebar([hospital], deptId);
+    }
+
+    const searchInput = document.getElementById("searchInput");
+    searchInput.addEventListener("input", e => {
+      let query = e.target.value.toLowerCase();
+      let filteredHospitals = hospitals.filter(h =>
+        h.name.toLowerCase().includes(query) ||
+        h.departments.some(d => d.name.toLowerCase().includes(query))
+      );
+      renderSidebar(filteredHospitals);
+    });
   </script>
 </body>
 </html>
