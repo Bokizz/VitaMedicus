@@ -7,7 +7,7 @@ def generate_appointment_pdf(appointment):
     pdf.add_page()
     font_path_regular = os.path.join(settings.BASE_DIR, "static", "fonts", "DejaVuSans.ttf")
     font_path_bold = os.path.join(settings.BASE_DIR, "static", "fonts", "DejaVuSans-Bold.ttf")
-    logo_img_path = os.path.join(settings.BASE_DIR, "static", "images", "vitamedicus2.png")
+    logo_img_path = os.path.join(settings.BASE_DIR, "static", "images", "vitamedicus.png")
 
     pdf.add_font("DejaVu", "", font_path_regular, uni=True)
     pdf.add_font("DejaVu", "B", font_path_bold, uni=True)
