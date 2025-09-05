@@ -10,6 +10,7 @@ def hospitals_data(request):
             "id":hospital.id,
             "name":hospital.name,
             "address":hospital.address,
+            "town":hospital.town,
             "latitude":float(hospital.latitude) if hospital.latitude else None, 
             "longitude":float(hospital.longitude) if hospital.longitude else None,
             "departments": [

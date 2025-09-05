@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.contrib.auth import get_user_model,login,logout,authenticate
 from django.utils.crypto import get_random_string
+from django.conf import settings
 
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
@@ -165,7 +166,7 @@ class ResendSMSCodeView(generics.GenericAPIView):
         expires_at = timezone.now() + timedelta(minutes=15)
         PhoneVerification.objects.create(user=user, code=code, expires_at=expires_at)
 
-        print(f"SMS CODE VERIFICATION: Верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
+        print(f"SMS CODE VERIFICATION терминал: Верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
 
         return Response(
             {"message": "Нов верификациски код е испратен!"},

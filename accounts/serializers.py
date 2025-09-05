@@ -1,10 +1,13 @@
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.response import Response
+from rest_framework import status
+
 from django.utils.crypto import get_random_string
 from django.contrib.auth import get_user_model, authenticate
 from django.utils import timezone
+from django.conf import settings
+
 from datetime import timedelta
 from .models import PhoneVerification, User, Doctor, PasswordResetToken
 from hospitals.models import *
@@ -12,8 +15,7 @@ import re
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from rest_framework.response import Response
-from rest_framework import status
+
 class PatientRegistrationSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(
         write_only=True,
@@ -83,6 +85,8 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
         # except Exception as e: 
         #     return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         print(f"SMS CODE VERIFICATION: Верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
+        
+
         return user
 
 class VerifyPhoneSerializer(serializers.Serializer):

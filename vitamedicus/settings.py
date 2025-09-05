@@ -28,8 +28,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
     
     'rest_framework',
+    'sslserver',
 
     'accounts',
     'hospitals',
@@ -45,18 +47,23 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/Skopje'
 
-# CELERY_BEAT_SCHEDULE = {
-#     'delete-expired-appointments': {
-#         'task': 'appointments.tasks.delete_expired_appointments',
-#         'schedule': crontab(minute=0, hour=0),  # every day at midnight
-#     },
-# }
+CELERY_BEAT_SCHEDULE = {
+    'delete-expired-appointments': {
+        'task': 'appointments.tasks.delete_expired_appointments',
+        'schedule': crontab(minute=0, hour=0),  
+    },
+    'generate_daily_slots':{
+        'task' : 'appointments.tasks.generate_daily_slots',
+        'schedule': crontab(hour=0, minute=0),
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -88,18 +95,21 @@ AUTH_USER_MODEL = 'accounts.User'
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # "rest_framework_simplejwt.authentication.JWTAuthentication", ZA JSON WEB TOKENS
+        'rest_framework.authentication.SessionAuthentication',
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
-        "accounts.permissions.NotBlacklisted",  # block blacklisted users everywhere
+        "accounts.permissions.NotBlacklisted",  # blokiraj blokirani hehe
     ],
 }
+# za email prakjanje, lozinka menjavanje i verifikacija
 EMAIL_PORT = os.environ.get('EMAIL_PORT')
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 EMAIL_HOST = os.environ.get('EMAIL_HOST')
+
 
 DATABASES = {
     'default': {
