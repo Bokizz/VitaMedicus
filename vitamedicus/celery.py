@@ -20,4 +20,8 @@ app.conf.beat_schedule = {
         "task": "appointments.tasks.delete_expired_appointments",
         "schedule": crontab(hour=0, minute=0),  # runs daily at midnight
     },
+    "generate_daily_slots" :{
+        "task" : "appointments.tasks.generate_daily_slots",
+        "schedule": crontab(hour=0, minute=0),
+    },
 }

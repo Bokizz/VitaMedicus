@@ -9,7 +9,11 @@ from datetime import timedelta
 from .models import PhoneVerification, User, Doctor, PasswordResetToken
 from hospitals.models import *
 import re
-
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from rest_framework.response import Response
+from rest_framework import status
 class PatientRegistrationSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(
         write_only=True,
@@ -61,6 +65,23 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
             created_at = timezone.now(),
             expires_at = timezone.now() + timedelta(minutes=15)
         )
+        # SMS Ne raboti vo MK :(
+        # from_email = settings.EMAIL_HOST_USER 
+        # to_phone = '+38978339020@tmomail.net' 
+        # msg = MIMEMultipart() 
+        # msg["Subject"] = "Верификациски код \n" 
+        # body = f"SMS CODE VERIFICATION: Верификациски код за корисникот со телефонски број {user.phone_number}:{code} \n" 
+        # msg["From"] = from_email 
+        # msg["To"] = to_phone 
+        # msg.attach(MIMEText(body, 'plain')) 
+        # sms = msg.as_string() 
+        # try: 
+        #     with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server: 
+        #         server.starttls() 
+        #         server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD) 
+        #         server.sendmail(msg["From"], [msg["To"]], sms) 
+        # except Exception as e: 
+        #     return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         print(f"SMS CODE VERIFICATION: Верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
         return user
 
