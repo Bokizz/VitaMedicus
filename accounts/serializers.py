@@ -84,7 +84,29 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
         #         server.sendmail(msg["From"], [msg["To"]], sms) 
         # except Exception as e: 
         #     return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        print(f"SMS CODE VERIFICATION: Верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
+        # za testiranje
+
+        from_email = settings.EMAIL_HOST_USER
+        to_email = user.email  # za produkcija vaka
+
+        to_email = settings.EMAIL_HOST_USER # za testiranje vaka 
+
+            
+        msg = MIMEText(f"Верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
+        msg["Subject"] = "VitaMedicus - верификација на профил"
+        msg["From"] = from_email
+        msg["To"] = to_email
+
+        try:
+            with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
+                server.starttls()
+                server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+                server.sendmail(msg["From"], [msg["To"]], msg.as_string())
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+        # print(f"SMS CODE VERIFICATION: Верификациски код за корисникот со телефонски број {user.phone_number}:{code}") ODE
         
 
         return user
@@ -170,11 +192,44 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
                   'hospital',
                   'department',
                   'service']
-        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        request = self.context.get("request")
+        if not request:
+            return
+
+        # da se prikazhat samo oddelenijata od taa klinika
+        hospital_id = request.data.get("hospital")
+        if hospital_id:
+            self.fields['department'].queryset = Department.objects.filter(hospital_id=hospital_id)
+
+        # za da se prikazhe samo uslugite od toa oddelenie
+        department_id = request.data.get("department")
+        if department_id:
+            self.fields['service'].queryset = Service.objects.filter(department_id=department_id)
+
     def validate(self, attrs):
-        if attrs['password'] != attrs['confirm_password']:
+        user_data = attrs.get('user', {})
+        password = user_data.get('password')
+        confirm_password = attrs.get('confirm_password')
+        if password != confirm_password:
             raise serializers.ValidationError({"confirm_password": "Не соодветствуваат лозинките! Обидете се повторно."})
+        
+        hospital = attrs.get("hospital")
+        department = attrs.get("department")
+        service = attrs.get("service")
+        if department and department.hospital_id != hospital.id:
+            raise serializers.ValidationError({
+                "department": f"Одделението {department.name} не припаѓа на клиниката {hospital.name}."
+            })
+
+        if service and service.department_id != department.id:
+            raise serializers.ValidationError({
+                "service": f"Услугата {service.name} не припаѓа на одделението {department.name}."
+            })
         return attrs
+
       
     def create(self, validated_data):
         user_data = validated_data.pop("user")
@@ -225,7 +280,16 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
             
         print(f"Pending admin approval...")
         return doctor 
-    
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = ["id", "name"]
+
+
+class ServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service
+        fields = ["id", "name"]
 # class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 #     username_field = "phone_number"
     

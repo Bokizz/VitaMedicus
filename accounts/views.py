@@ -7,6 +7,7 @@ from django.conf import settings
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 
 from email.mime.text import MIMEText
 from datetime import timedelta
@@ -40,6 +41,26 @@ class DoctorRegistrationView(generics.CreateAPIView):
             status=status.HTTP_201_CREATED,
             headers=headers
         )
+@api_view(['GET'])
+def departments_by_hospital(request):
+    hospital_id = request.query_params.get("hospital_id")
+    if not hospital_id:
+        return Response({"error": "hospital_id is required"}, status=400)
+
+    departments = Department.objects.filter(hospital_id=hospital_id)
+    serializer = DepartmentSerializer(departments, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+def services_by_department(request):
+    department_id = request.query_params.get("department_id")
+    if not department_id:
+        return Response({"error": "department_id is required"}, status=400)
+
+    services = Service.objects.filter(department_id=department_id)
+    serializer = ServiceSerializer(services, many=True)
+    return Response(serializer.data)
     
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]

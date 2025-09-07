@@ -12,4 +12,7 @@ urlpatterns = [
     path('resend-sms/', ResendSMSCodeView.as_view(), name = 'resend-sms'),
     path('forgot-password/', ForgotPasswordView.as_view(),name = "forgot-password"),
     path('reset-password/', ResetPasswordView.as_view(), name = "reset-password"),
+
+    path("departments/", departments_by_hospital, name="departments_by_hospital"),
+    path("services/", services_by_department, name="services_by_department"),
 ]
