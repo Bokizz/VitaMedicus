@@ -3,7 +3,10 @@ from .views import *
 
 urlpatterns = [
     path('register/', PatientRegistrationView.as_view(), name = 'registration'),
+    
     path('register/doctor/', DoctorRegistrationView.as_view(), name = 'doctor-registration'),
+    path("doctor/register-page/", doctor_registration_page, name="doctor_register_page"),
+
     path('login/', LoginView.as_view(), name = 'login'),
     path('logout/', LogoutView.as_view(), name = 'logout'),
 

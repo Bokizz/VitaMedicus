@@ -17,6 +17,8 @@ from .models import PhoneVerification,Doctor
 from .permissions import NotBlacklisted
 import smtplib
 
+def doctor_registration_page(request):
+    return render(request, "accounts/docregistration.html")
 
 class PatientRegistrationView(generics.CreateAPIView):
     serializer_class = PatientRegistrationSerializer
@@ -251,3 +253,4 @@ class ResetPasswordView(generics.GenericAPIView):
             return Response({"message": "Успешно ја променивте вашата лозинка!"}, status=200)
 
         return Response(serializer.errors, status=400)
+    

@@ -1,7 +1,12 @@
 from django.urls import path
-from . import views
+from .views import *
 
 urlpatterns = [
-    path("map/", views.hospitals_map, name="hospitals_map"),
-    path("data/", views.hospitals_data, name="hospitals_data"),
+    path("map/", hospitals_map, name="hospitals_map"),
+    path("data/", hospitals_data, name="hospitals_data"),
+    path("hospitals/", HospitalListView.as_view(), name="hospital-list"),
+    path("hospitals/<int:hospital_id>/departments/", HospitalDepartmentsListView.as_view(), name="hospital-departments"),
+    path("departments/", DepartmentListView.as_view(), name="department-list"),
+    path("departments/<int:department_id>/services/", DepartmentServicesListView.as_view(), name="department-services"),
+    path("services/", ServiceListView.as_view(), name="service-list"),
 ]
