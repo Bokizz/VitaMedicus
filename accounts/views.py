@@ -19,10 +19,22 @@ import smtplib
 
 def doctor_registration_page(request):
     return render(request, "accounts/docregistration.html")
+def patient_registration_page(request):
+    return render(request, "accounts/patientregistration.html")
+def verification_page(request):
+    phone_number = request.GET.get('phone_number', '')
+    context = {'phone_number': phone_number}
+    return render(request, "accounts/verify.html",context)
 
 class PatientRegistrationView(generics.CreateAPIView):
     serializer_class = PatientRegistrationSerializer
     permission_classes = [permissions.AllowAny]
+    def post(self, request):
+        serializer = PatientRegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({"message": "Регистрацијата беше успешна! Проверете ја е-поштата за верификациски код."}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class DoctorRegistrationView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
     queryset = Doctor.objects.all()
@@ -43,6 +55,8 @@ class DoctorRegistrationView(generics.CreateAPIView):
             status=status.HTTP_201_CREATED,
             headers=headers
         )
+    
+    
 @api_view(['GET'])
 def departments_by_hospital(request):
     hospital_id = request.query_params.get("hospital_id")
@@ -109,6 +123,16 @@ class VerifyPhoneView(generics.GenericAPIView):
     serializer_class = VerifyPhoneSerializer
 
     def post(self, request):
+        print(f"Request data: {request.data}")  # Debugging
+        print(f"Content type: {request.content_type}")  # Debugging
+        
+        # Handle both form data and JSON data
+        if request.content_type == 'application/json':
+            data = request.data
+        else:
+            data = request.data.dict()
+        
+        print(f"Processed data: {data}")  # Debugging
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

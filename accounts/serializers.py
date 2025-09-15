@@ -67,48 +67,29 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
             created_at = timezone.now(),
             expires_at = timezone.now() + timedelta(minutes=15)
         )
-        # SMS Ne raboti vo MK :(
-        # from_email = settings.EMAIL_HOST_USER 
-        # to_phone = '+38978339020@tmomail.net' 
-        # msg = MIMEMultipart() 
-        # msg["Subject"] = "Верификациски код \n" 
-        # body = f"SMS CODE VERIFICATION: Верификациски код за корисникот со телефонски број {user.phone_number}:{code} \n" 
-        # msg["From"] = from_email 
-        # msg["To"] = to_phone 
-        # msg.attach(MIMEText(body, 'plain')) 
-        # sms = msg.as_string() 
-        # try: 
-        #     with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server: 
-        #         server.starttls() 
-        #         server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD) 
-        #         server.sendmail(msg["From"], [msg["To"]], sms) 
-        # except Exception as e: 
-        #     return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        # za testiranje
+        
+        # trgni komentari pri produkcija
+        # from_email = settings.EMAIL_HOST_USER
+        # to_email = user.email  # za produkcija vaka
 
-        from_email = settings.EMAIL_HOST_USER
-        to_email = user.email  # za produkcija vaka
-
-        to_email = settings.EMAIL_HOST_USER # za testiranje vaka 
+        # to_email = settings.EMAIL_HOST_USER # za testiranje vaka 
 
             
-        msg = MIMEText(f"Верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
-        msg["Subject"] = "VitaMedicus - верификација на профил"
-        msg["From"] = from_email
-        msg["To"] = to_email
+        # msg = MIMEText(f"Верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
+        # msg["Subject"] = "VitaMedicus - верификација на профил"
+        # msg["From"] = from_email
+        # msg["To"] = to_email
 
-        try:
-            with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
-                server.starttls()
-                server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
-                server.sendmail(msg["From"], [msg["To"]], msg.as_string())
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # try:
+        #     with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
+        #         server.starttls()
+        #         server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+        #         server.sendmail(msg["From"], [msg["To"]], msg.as_string())
+        # except Exception as e:
+        #     return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-        # print(f"SMS CODE VERIFICATION: Верификациски код за корисникот со телефонски број {user.phone_number}:{code}") ODE
-        
-
+        print(f"SMS CODE VERIFICATION: Верификациски код за корисникот со телефонски број {user.phone_number}:{code}") 
         return user
 
 class VerifyPhoneSerializer(serializers.Serializer):
@@ -280,6 +261,13 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
             
         print(f"Pending admin approval...")
         return doctor 
+    # def post(self, request):
+    #     serializer = DoctorRegistrationSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         user = 
+    #         doctor = serializer.save()
+    #         return Response({"message": "Регистрацијата беше успешна! Проверете ја е-поштата за верификациски код."}, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
@@ -290,26 +278,7 @@ class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = ["id", "name"]
-# class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-#     username_field = "phone_number"
-    
-#     def validate(self, attrs):
-#         data = super().validate(attrs)
 
-#         if self.user.is_blacklisted:
-#             raise AuthenticationFailed("Блокирани сте и не можете да се најавите додека не ве одблокира админ.")
-    
-#         data.update({
-#             "user":{
-#                 "id": self.user.id,
-#                 "first_name": self.user.first_name,
-#                 "last_name": self.user.last_name,
-#                 "phone_number": self.user.phone_number,
-#                 "role": self.user.role,
-#             }
-#         })
-#         return data
-    
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
     

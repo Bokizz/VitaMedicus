@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+  <img src="{% static 'images/vitamedicus.png' %}" alt="VitaMedicus" class="logo">
+  
+  <div class="card p-4 w-100" style="max-width: 500px;">
+    <h3 class="text-center text-primary mb-4">Верификација на профил</h3>
+    
+    <form id="verifyForm">
+      {% csrf_token %}
+      
+      <div class="mb-3">
+        <label for="code" class="form-label">Внесете го верификацискиот код</label>
+        <input type="text" id="code" name="code" class="form-control" placeholder="XXXXXX" required>
+        <div class="form-text">Внесете го 6-цифрениот код испратен на вашиот телефон</div>
+      </div>
+      
+      <input type="hidden" id="phone_number" name="phone_number">
+      
+      <button type="submit" class="btn btn-primary w-100 mt-3">Потврди</button>
+    </form>
+
+    <div class="mt-4 text-center">
+      <button id="resendBtn" class="btn btn-outline-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope me-2" viewBox="0 0 16 16">
+          <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
+        </svg>
+        Испрати нов код
+      </button>
+    </div>
+
+    <p id="error-message" class="text-danger mt-3 text-center"></p>
+    <p id="success-message" class="text-success mt-3 text-center"></p>
+  </div>
+</div>
+
+<style>
+  body {
+    background: linear-gradient(135deg, #f8ffff, #e6f7ff, #d1f7f5);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .logo {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    height: 100px;
+  }
+  .card {
+    border-radius: 1rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    margin: 0 auto;
+  }
+  .btn-primary {
+    background-color: #007bff;
+    border: none;
+    padding: 10px;
+    font-weight: 500;
+  }
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+  .btn-outline-primary {
+    border-color: #007bff;
+    color: #007bff;
+  }
+  .btn-outline-primary:hover {
+    background-color: #007bff;
+    color: white;
+  }
+  .form-control {
+    border-radius: 0.5rem;
+    padding: 12px;
+  }
+  .form-label {
+    font-weight: 500;
+  }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    let phoneNumber = urlParams.get("phone_number");
+
+    if (!phoneNumber) {
+        document.getElementById("error-message").innerText = "Недостасува телефонски број!";
+        return;
+    }
+    
+    phoneNumber = phoneNumber.trim();
+    
+    if (!phoneNumber.startsWith('+')) {
+        phoneNumber = '+' + phoneNumber;
+    }
+    
+    document.getElementById("phone_number").value = phoneNumber;
+    localStorage.setItem("phone_number", phoneNumber);
+
+    document.getElementById("verifyForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const code = document.getElementById("code").value;
+        const phone = document.getElementById("phone_number").value;
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        const formData = new FormData();
+        formData.append('code', code);
+        formData.append('phone_number', phone);
+
+        const response = await fetch("/api/accounts/verify-phone/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken,
+            },
+            body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            document.getElementById("success-message").innerText = data.message;
+            document.getElementById("error-message").innerText = "";
+            setTimeout(() => window.location.href = "/api/accounts/home/", 1500);
+        } else {
+            document.getElementById("error-message").innerText = data.error;
+            document.getElementById("success-message").innerText = "";
+        }
+    });
+
+    // Resend code
+    document.getElementById("resendBtn").addEventListener("click", async function () {
+        const phone = document.getElementById("phone_number").value;
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const formData = new FormData();
+        formData.append('phone_number', phone);
+        const response = await fetch("/api/accounts/resend-sms/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken,
+            },
+            body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            document.getElementById("success-message").innerText = data.message;
+            document.getElementById("error-message").innerText = "";
+        } else {
+            document.getElementById("error-message").innerText = data.error;
+            document.getElementById("success-message").innerText = "";
+        }
+    });
+});
+</script>
+{% endblock %}
