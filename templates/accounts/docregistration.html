@@ -18,7 +18,7 @@
       position: absolute;
       top: 20px;
       left: 20px;
-      height: 60px;
+      height: 100px;
     }
     .card {
       border-radius: 1rem;
@@ -34,11 +34,14 @@
   </style>
 </head>
 <body>
-  <img src="./static/images/vitamedicus.png" alt="VitaMedicus" class="logo">
+  {% load static %}
+<img src="{% static 'images/vitamedicus.png' %}" alt="VitaMedicus" class="logo">
+
 
   <div class="card p-4 w-100" style="max-width: 700px;">
     <h3 class="text-center text-primary mb-4">Регистрација</h3>
     <form id="doctorForm" class="row g-3">
+      {% csrf_token %}
       <div class="col-md-6">
         <input type="text" class="form-control" name="first_name" placeholder="Име" required>
       </div>
@@ -60,7 +63,16 @@
       <div class="col-md-6">
         <input type="password" class="form-control" name="confirm_password" placeholder="Потврди лозинка" required>
       </div>
-
+      <div class="col-12">
+        <select class="form-select" name="specialization" required>
+          <option value="">Избери специјализација</option>
+          <option value="cardiology">Кардиологија</option>
+          <option value="neurology">Неврологија</option>
+          <option value="pediatrics">Педијатрија</option>
+          <option value="orthopedics">Ортопедија</option>
+          <option value="psychiatry">Психијатрија</option>
+        </select>
+      </div>
       <div class="col-12">
         <select class="form-select" id="hospitalSelect" name="hospital" required>
           <option value="">Избери клиника</option>
@@ -90,6 +102,7 @@
     const hospitalSelect = document.getElementById("hospitalSelect");
     const departmentSelect = document.getElementById("departmentSelect");
     const serviceSelect = document.getElementById("serviceSelect");
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
     axios.get("/api/hospitals/hospitals").then(res => {
       res.data.forEach(h => {
@@ -127,13 +140,57 @@
       }
     });
 
-    document.getElementById("doctorForm").addEventListener("submit", e => {
-      e.preventDefault();
-      const formData = Object.fromEntries(new FormData(e.target).entries());
-      axios.post("/api/accounts/register/doctor/", formData)
-        .then(res => alert(res.data.message))
-        .catch(err => alert("Грешка при регистрација"));
-    });
+    // document.getElementById("doctorForm").addEventListener("submit", e => {
+    //   e.preventDefault();
+    //   const formData = Object.fromEntries(new FormData(e.target).entries());
+      
+    //   axios.post("/api/accounts/register/doctor/", formData)
+    //     .then(res => alert(res.data.message))
+    //     .catch(err => alert("Грешка при регистрација"));
+    // });
+    document.getElementById("doctorForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    const data = {
+    first_name: this.first_name.value,
+    last_name: this.last_name.value,
+    email: this.email.value,
+    phone_number: this.phone_number.value,
+    serial_number: this.serial_number.value,
+    password: this.password.value,
+    confirm_password: this.confirm_password.value,
+    specialization: this.specialization.value,
+    hospital: this.hospital.value,
+    department: this.department.value,
+    service: this.service.value,
+  };
+
+    if (data.password !== data.confirm_password) {
+      alert("Лозинките не се совпаѓаат!");
+      return;
+    }
+    if(data.serial_number.length != 13){
+        alert("Матичниот број мора да е точно 13 цифри долг!");
+        return;
+    }
+
+    try {
+      console.log("Sending data:", data); 
+      const response = await  axios.post("/api/accounts/register/doctor/", data, {
+    headers: {
+      "X-CSRFToken": csrftoken
+    }
+  });
+      alert("Успешна регистрација!");
+      const phone = data.phone_number
+      window.location.href = `/api/accounts/verify/?phone_number=${phone}`;
+    } catch (error) {
+      console.error(error.response?.data || error.message);
+      alert("Настана грешка при регистрацијата. Проверете ги податоците.");
+    }
+  });
   </script>
 </body>
 </html>

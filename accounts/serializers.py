@@ -239,6 +239,35 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
         )
         user.set_password(password)
         user.save()
+        code = get_random_string(6,allowed_chars = '0123456789')
+        PhoneVerification.objects.create(
+            user = user,
+            code = code,
+            created_at = timezone.now(),
+            expires_at = timezone.now() + timedelta(minutes=15)
+        )
+        print(f"SMS CODE VERIFICATION: Верификациски код за корисникот со телефонски број {user.phone_number}:{code}") 
+        # trgni komentari pri produkcija
+        # from_email = settings.EMAIL_HOST_USER
+        # to_email = user.email  # za produkcija vaka
+
+        # to_email = settings.EMAIL_HOST_USER # za testiranje vaka 
+
+            
+        # msg = MIMEText(f"Верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
+        # msg["Subject"] = "VitaMedicus - верификација на профил"
+        # msg["From"] = from_email
+        # msg["To"] = to_email
+
+        # try:
+        #     with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
+        #         server.starttls()
+        #         server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+        #         server.sendmail(msg["From"], [msg["To"]], msg.as_string())
+        # except Exception as e:
+        #     return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
         doctor = Doctor.objects.create(
             user = user,
             specialization = specialization,
