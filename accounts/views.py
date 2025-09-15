@@ -17,14 +17,14 @@ from .models import PhoneVerification,Doctor
 from .permissions import NotBlacklisted
 import smtplib
 
-def doctor_registration_page(request):
-    return render(request, "accounts/docregistration.html")
-def patient_registration_page(request):
-    return render(request, "accounts/patientregistration.html")
 def verification_page(request):
     phone_number = request.GET.get('phone_number', '')
     context = {'phone_number': phone_number}
     return render(request, "accounts/verify.html",context)
+def login_page(request):
+    return render(request,"accounts/login.html")
+def registration_page(request):
+    return render(request,"accounts/register.html")
 
 class PatientRegistrationView(generics.CreateAPIView):
     serializer_class = PatientRegistrationSerializer
@@ -212,7 +212,25 @@ class ResendSMSCodeView(generics.GenericAPIView):
         code = get_random_string(6, allowed_chars='0123456789')
         expires_at = timezone.now() + timedelta(minutes=15)
         PhoneVerification.objects.create(user=user, code=code, expires_at=expires_at)
+        # trgni komentari pri produkcija
+        # from_email = settings.EMAIL_HOST_USER
+        # # to_email = user.email  # za produkcija vaka
 
+        # to_email = settings.EMAIL_HOST_USER # za testiranje vaka 
+
+            
+        # msg = MIMEText(f"Нов верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
+        # msg["Subject"] = "VitaMedicus - нов верификациски код"
+        # msg["From"] = from_email
+        # msg["To"] = to_email
+
+        # try:
+        #     with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
+        #         server.starttls()
+        #         server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+        #         server.sendmail(msg["From"], [msg["To"]], msg.as_string())
+        # except Exception as e:
+        #     return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         print(f"SMS CODE VERIFICATION терминал: Верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
 
         return Response(

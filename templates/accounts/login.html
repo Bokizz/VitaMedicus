@@ -1,0 +1,116 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Најава</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #f8ffff, #e6f7ff, #d1f7f5);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      height: 100px;
+    }
+    .card {
+      border-radius: 1rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .btn-primary {
+      background-color: #007bff;
+      border: none;
+      padding: 10px;
+      font-weight: 500;
+    }
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+    .form-control {
+      border-radius: 0.5rem;
+      padding: 12px;
+    }
+    .login-options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  {% load static %}
+  <img src="{% static 'images/vitamedicus.png' %}" alt="VitaMedicus" class="logo">
+
+  <div class="card p-4 w-100" style="max-width: 500px;">
+    <h3 class="text-center text-primary mb-4">Најава</h3>
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+    
+    <form id="loginForm" method="POST" action="{% url 'login' %}">
+      {% csrf_token %}
+      
+      <div class="mb-3">
+        <label for="phone_number" class="form-label">Телефонски број</label>
+        <input type="text" class="form-control" id="phone_number" name="phone_number" placeholder="+3897XXXXXXX" required>
+      </div>
+      
+      <div class="mb-3">
+        <label for="password" class="form-label">Лозинка</label>
+        <input type="password" class="form-control" id="password" name="password" placeholder="Внесете лозинка" required>
+      </div>
+      
+      <button type="submit" class="btn btn-primary w-100">Најави се</button>
+      
+      <div class="login-options">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="rememberMe" name="remember_me">
+          <label class="form-check-label" for="rememberMe">Запомни ме</label>
+        </div>
+        <!-- <a href="{% url 'password_reset' %}" class="text-decoration-none">Заборавена лозинка?</a> dovrshi posle --> 
+      </div>
+    </form>
+    
+    <div class="text-center mt-4">
+      <!-- <p>Немате профил? <a href="{% url 'register_selection' %}" class="text-decoration-none">Регистрирај се</a></p> dovrshi -->
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      // Basic client-side validation
+      const phoneNumber = document.getElementById("phone_number").value;
+      const password = document.getElementById("password").value;
+      
+      if (!phoneNumber.trim()) {
+        e.preventDefault();
+        alert("Внесете телефонски број!");
+        return false;
+      }
+      
+      if (!password.trim()) {
+        e.preventDefault();
+        alert("Внесете лозинка!");
+        return false;
+      }
+      
+      // You can add more specific validation here if needed
+    });
+  </script>
+</body>
+</html>
