@@ -25,6 +25,17 @@ def login_page(request):
     return render(request,"accounts/login.html")
 def registration_page(request):
     return render(request,"accounts/register.html")
+def forgot_password_page(request):
+    return render(request, "accounts/forgot_password.html")
+def reset_password_page(request):
+    token = request.GET.get('token', '')
+    
+    if not token:
+        return render(request, 'accounts/reset_password_error.html', {
+            'error': 'Невалиден линк за ресетирање.'
+        })
+    context = {'token': token}
+    return render(request, "accounts/reset_password.html",context)
 
 class PatientRegistrationView(generics.CreateAPIView):
     serializer_class = PatientRegistrationSerializer
@@ -237,8 +248,6 @@ class ResendSMSCodeView(generics.GenericAPIView):
             {"message": "Нов верификациски код е испратен!"},
             status=status.HTTP_200_OK
         )
-# class CustomTokenObtainPairView(TokenObtainPairView): ZA JSON WEB TOKENS
-#     serializer_class = CustomTokenObtainPairSerializer
 
 class ForgotPasswordView(generics.GenericAPIView):
     permission_classes = [NotBlacklisted]# permissions.isAuthenticated dodaj posle test
@@ -248,16 +257,31 @@ class ForgotPasswordView(generics.GenericAPIView):
         if serializer.is_valid():
             token = serializer.save()
 
-            reset_link = f"http://localhost:8000/api/accounts/reset-password/?token={token.token}/"
+            reset_link = f"http://localhost:8000/api/accounts/reset-password-page/?token={token.token}/"
             serializer.validated_data["email"] = settings.EMAIL_HOST_USER # za testiranje
 
             from_email = settings.EMAIL_HOST_USER
             to_email = serializer.validated_data["email"]
             
-            msg = MIMEText(f"Click the link to reset your password: {reset_link}")
-            msg["Subject"] = "Password Reset Request"
-            msg["From"] = from_email
-            msg["To"] = to_email
+            msg = MIMEText(f"""
+            Почитувани,
+            
+            Поднесовте барање за промена на вашата лозинка.
+            
+            Ве молиме продолжете кон следниот линк за да ја промените вашата лозинка:
+            {reset_link}
+            
+            Овој линк ќе биде валиден во наредните 24 часа.
+            
+            Доколку немате поднесено вакво барање, веднаш контактирајте поддршка за корисници.
+
+            Со почит,
+            Тимот на VitaMedicus
+            """)
+            
+            msg['Subject'] = "VitaMedicus - Промена на лозинка"
+            msg['From'] = from_email
+            msg['To'] = to_email
 
             try:
                 with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
@@ -276,7 +300,16 @@ class ResetPasswordView(generics.GenericAPIView):
     serializer_class = ResetPasswordSerializer
 
     def post(self, request):
-        token = request.GET.get("token", "").rstrip("/") # token od URL
+        # Debug: Print what data we're receiving
+        
+        token = request.POST.get("token", "").strip().rstrip("/")
+        if not token:
+            token = request.GET.get("token", "").strip().rstrip("/")
+        
+        # Debug: Print the token we received
+        print(f"Token received: '{token}'")
+        print(f"Request POST data: {request.POST}")
+        
         if not token:
             return Response({"error": "Грешка. Обидете се повторно."}, status=400)
 

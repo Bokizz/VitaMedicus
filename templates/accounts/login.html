@@ -81,12 +81,12 @@
           <input class="form-check-input" type="checkbox" id="rememberMe" name="remember_me">
           <label class="form-check-label" for="rememberMe">Запомни ме</label>
         </div>
-        <!-- <a href="{% url 'password_reset' %}" class="text-decoration-none">Заборавена лозинка?</a> dovrshi posle --> 
+        <a href="/api/accounts/forgot-password-page" class="text-decoration-none">Заборавена лозинка?</a> 
       </div>
     </form>
     
     <div class="text-center mt-4">
-      <!-- <p>Немате профил? <a href="{% url 'register_selection' %}" class="text-decoration-none">Регистрирај се</a></p> dovrshi -->
+      <p>Немате профил? <a href="/api/accounts/register/" class="text-decoration-none">Регистрирајте се</a></p>
     </div>
   </div>
 
