@@ -24,4 +24,8 @@ app.conf.beat_schedule = {
         "task" : "appointments.tasks.generate_daily_slots",
         "schedule": crontab(hour=0, minute=0),
     },
+    "delete_unverified": {
+        "task": "accounts.tasks.delete_unverified",
+        "schedule" : 600.0,
+    },
 }
