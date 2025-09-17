@@ -36,6 +36,9 @@ def reset_password_page(request):
         })
     context = {'token': token}
     return render(request, "accounts/reset_password.html",context)
+def home_page(request):
+    return render(request, "home.html")
+
 
 class PatientRegistrationView(generics.CreateAPIView):
     serializer_class = PatientRegistrationSerializer
@@ -112,6 +115,7 @@ class LoginView(APIView):
         login(request, user)
         return Response({
             "message" : "Успешно се најавивте!",
+            "redirect_url":"/api/accounts/home/",
             "user" : {
                 "id" : user.id,
                 "first_name" : user.first_name,
@@ -328,4 +332,7 @@ class ResetPasswordView(generics.GenericAPIView):
             return Response({"message": "Успешно ја променивте вашата лозинка!"}, status=200)
 
         return Response(serializer.errors, status=400)
+
+
+
     

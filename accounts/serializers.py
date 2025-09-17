@@ -290,13 +290,6 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
             
         print(f"Pending admin approval...")
         return doctor 
-    # def post(self, request):
-    #     serializer = DoctorRegistrationSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         user = 
-    #         doctor = serializer.save()
-    #         return Response({"message": "Регистрацијата беше успешна! Проверете ја е-поштата за верификациски код."}, status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department

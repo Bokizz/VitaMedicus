@@ -92,25 +92,55 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    document.getElementById("loginForm").addEventListener("submit", function(e) {
-      // Basic client-side validation
-      const phoneNumber = document.getElementById("phone_number").value;
-      const password = document.getElementById("password").value;
-      
-      if (!phoneNumber.trim()) {
-        e.preventDefault();
+    document.getElementById("loginForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const phoneNumber = document.getElementById("phone_number").value;
+    const password = document.getElementById("password").value;
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    if (!phoneNumber.trim()) {
         alert("Внесете телефонски број!");
         return false;
-      }
-      
-      if (!password.trim()) {
-        e.preventDefault();
+    }
+    
+    if (!password.trim()) {
         alert("Внесете лозинка!");
         return false;
-      }
-      
-      // You can add more specific validation here if needed
-    });
-  </script>
+    }
+
+    try {
+        const response = await fetch("{% url 'login' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrftoken,
+            },
+            body: JSON.stringify({
+                phone_number: phoneNumber,
+                password: password
+            }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert(data.message || "Успешно се најавивте!");
+            
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            } else {
+                window.location.href = "/api/accounts/home/"; // Default redirect
+            }
+        } else {
+            // Show error message
+            alert(data.error || "Настана грешка при најава.");
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Настана грешка при комуникацијата со серверот.");
+    }
+});
+</script>
 </body>
 </html>
