@@ -50,7 +50,7 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(Hospital)
 class HospitalAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "address","phone_number",)
+    list_display = ("id", "name", "address","phone_number","town",)
     search_fields = ("name","address",)
 
 @admin.register(Department)
