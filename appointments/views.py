@@ -20,6 +20,10 @@ from rest_framework.response import Response
 from django.utils import timezone
 
 
+def appointment_page(request):
+    return render(request,"appointments/appointment.html")
+
+
 def download_appointment_pdf(request, appointment_id): # permissions.isAuthenticated dodaj posle test
     try:
         appointment = Appointment.objects.get(id=appointment_id)
