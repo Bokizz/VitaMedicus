@@ -17,7 +17,9 @@ class UserAdmin(BaseUserAdmin):
                     "is_active",
                     "is_staff",
                     "is_phone_verified",
-                    "is_blacklisted",)
+                    "is_blacklisted",
+                    "share_info",
+                    )
     list_filter = ("role","is_active","is_staff","is_blacklisted",)
     search_fields = ("phone_number","first_name","last_name",)
     ordering = ("id",)

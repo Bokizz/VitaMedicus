@@ -67,3 +67,9 @@ class Appointment(models.Model):
         Returns True if appointment is recurring and still pending confirmation.
         """
         return self.is_recurring and self.status == "pending"
+
+class AppointmentComment(models.Model):
+    appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE, related_name='comments')
+    doctor = models.ForeignKey('accounts.Doctor', on_delete=models.CASCADE, related_name='doctor_comments')
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
