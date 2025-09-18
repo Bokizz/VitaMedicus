@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<header>
+    <div class="px-3 py-2 border-bottom mb-3">
+        <div class="container d-flex flex-wrap justify-content-between align-items-center">
+            <!-- Search form on the left -->
+            <form class="col-12 col-lg-auto mb-2 mb-lg-0 me-lg-auto">
+                <input type="search" class="form-control" placeholder="Пребарај..." aria-label="Search">
+            </form>
+
+            <!-- User info and buttons on the right -->
+            <div class="text-end d-flex align-items-center">
+                {% if user.is_authenticated %}
+                    <span class="text-muted me-3">Здраво, {{ user.first_name }}!</span>
+                    <form id="logout-form" action="{% url 'logout' %}" method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-light text-dark me-2">Одјавете се</button>
+                    </form>
+                {% else %}
+                    <a href="/api/accounts/login/" class="btn btn-light text-dark me-2">Најави се</a>
+                    <a href="/api/accounts/register/" class="btn btn-primary">Регистрирај се</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container mt-4">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Претстојни Термини</h4>
+                </div>
+                <div class="card-body">
+                    {% if appointments %}
+                        <div class="appointments-list">
+                            {% for appointment in appointments %}
+                                <div class="appointment-card card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 class="card-title mb-1">{{ appointment.service.name }}</h5>
+                                                <p class="card-text mb-1">
+                                                    <strong>Доктор:</strong> Др. {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}
+                                                </p>
+                                                <p class="card-text mb-1">
+                                                    <strong>Клиника:</strong> {{ appointment.doctor.hospital.name }}
+                                                </p>
+                                                <p class="card-text mb-1">
+                                                    <strong>Дата и време:</strong> {{ appointment.date_time|date:"d.m.Y H:i" }}
+                                                </p>
+                                                <p class="card-text">
+                                                    <strong>Статус:</strong> 
+                                                    <span class="badge {% if appointment.status == 'scheduled' %}bg-warning{% elif appointment.status == 'confirmed' %}bg-success{% elif appointment.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                        {{ appointment.get_status_display }}
+                                                    </span>
+                                                </p>
+                                            </div>
+                                            <div class="text-end">
+                                                <button class="btn btn-outline-primary btn-sm me-2">Детали</button>
+                                                <button class="btn btn-outline-danger btn-sm">Откажи</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-calendar-x text-muted mb-3" viewBox="0 0 16 16">
+                                <path d="M6.146 7.146a.5.5 0 0 1 .708 0L8 8.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 9l1.147 1.146a.5.5 0 0 1-.708.708L8 9.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 9 6.146 7.854a.5.5 0 0 1 0-.708"/>
+                                <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
+                            </svg>
+                            <h5 class="text-muted">Немате претстојни термини</h5>
+                            <p class="text-muted">Закажете го вашиот прв термин и ќе се појави тука.</p>
+                            <a href="#" class="btn btn-primary">Закажете Термин</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mt-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-plus-circle text-primary mb-2" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                            </svg>
+                            <h5>Нов Термин</h5>
+                            <p class="text-muted">Закажете нов термин со вашиот доктор</p>
+                            <a href="/api/appointments/appointment/" class="btn btn-outline-primary">Закажи</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-person-circle text-primary mb-2" viewBox="0 0 16 16">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                            </svg>
+                            <h5>Профил</h5>
+                            <p class="text-muted">Управувајте со вашите лични податоци</p>
+                            <a href="/api/accounts/profile/" class="btn btn-outline-primary">Уреди</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-clock-history text-primary mb-2" viewBox="0 0 16 16">
+                                <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267q.069-.247.12-.501m-.952 2.379q.276-.436.486-.908l.914.405q-.24.54-.555 1.038zm-.964 1.205q.429-.256.845-.56l.845.53a8 8 0 0 1-.933.634z"/>
+                                <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/>
+                                <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5"/>
+                            </svg>
+                            <h5>Ваши термини</h5>
+                            <p class="text-muted">Прегледајте ги вашите термини</p>
+                            <a href="#" class="btn btn-outline-primary">Прегледај</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    .appointment-card {
+        border-left: 4px solid #007bff;
+        transition: transform 0.2s;
+    }
+    
+    .appointment-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .badge {
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
