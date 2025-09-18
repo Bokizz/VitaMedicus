@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<header>
+    <div class="px-3 py-2 bg-dark text-white">
+        <div class="container">
+            <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+                <a href="/" class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
+                    <img src="{% static 'images/vitamedicus_nobg.png' %}" alt="VitaMedicus" height="60" class="me-2">
+                    <span class="fs-4 fw-bold">VitaMedicus</span>
+                </a>
+                    <ul class="nav col-12 col-lg-auto my-2 justify-content-center my-md-0 text-small">
+                        <li>
+                            <a href="{% url 'home' %}" class="nav-link text-white">
+                                <svg class="bi bi-house d-block mx-auto mb-1" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 极-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z"/>
+                                </svg>
+                                Дома
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link text-secondary">
+                                <svg class="bi d-block mx-auto mb-1" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M8 7a.5.5 0 0 1 .5.5V9H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V10H6a.5.5 0 0 1 0-1h1.5V7.5A.5.5 0 0 1 8 7"/>
+                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
+                                </svg>
+                                Закажете Термин
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link text-white">
+                                <svg class="bi d-block mx-auto mb-1" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053.918 3.995.78 5.323 1.508 7H.43c-2.128-5.697 4.165-8.83 7.394-5.857q.09.083.176.171a3 3 0 0 1 .极-.17c3.23-2.974 9.522.159 7.394 5.856h-1.078c.728-1.677.59-3.005.108-3.947C13.486.878 10.4.28 8.717 2.01zM2.212 10h1.315C4.593 11.183 6.05 12.458 8 13.795c1.949-1.337 3.407-2.612 4.473-3.795h1.315c-1.265 1.566-3.14 3.25-5.788 5-2.648-1.75-4.523-3.434-5.788-5"/>
+                                    <path d="M10.464 3.314a.5.5 0 0 0-.945.049L7.921 8.956 6.464 5.314a.5.5 0 0 0-.88-.091L3.732 8H.5a.5.5 0 0 0 0 1H4a.5.5 0 0 0 .416-.223l1.473-2.209 1.647 4.118a.5.5 0 0 0 .945-.049l1.598-5.593 1.457 3.642A.5.5 0 0 0 12 9h3.5a.5.5 0 0 0 0-1h-3.162z"/>
+                                </svg>
+                                Ваши Термини
+                            </a>
+                        </li>
+                        {% if user.is_staff %}
+                        <li>
+                            <a href="#" class="nav-link text-white">
+                                <svg class="bi d-block mx-auto mb-1" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M14 0H2a2 2 0 0 0-2 2极12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM1 3.857C1 3.384 1.448 3 2 3h12c.552 0 1 .384 1 .857v10.286c0 .473-.448.857-1 .857H2c-.552 0-1-.384-1-.857z"/>
+                                    <path d="M6.5 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                                </svg>
+                                Ваш Распоред
+                        </li>
+                        {% endif %}
+                    </ul>
+            </div>
+        </div>
+    </div>
+    <div class="px-3 py-2 border-bottom mb-3">
+        <div class="container d-flex flex-wrap justify-content-center">
+            <form class="col-12 col-lg-auto mb-2 mb-lg-0 me-lg-auto">
+                <input type="search" class="form-control" placeholder="Пребарај..." aria-label="Search">
+            </form>
+        </div>
+    </div>
+</header>
+
+<main class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Hospital Selection -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Изберете Клиника</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover" id="hospitalTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Име на Клиника</th>
+                                                    <th>Град</th>
+                                                    <th>Избери</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Hospitals will be loaded dynamically -->
+                                                <tr>
+                                                    <td colspan="3" class="text-center">
+                                                        <div class="spinner-border text-primary" id="loadingSpinner" role="status"></div>
+                                                            <span class="visually-hidden">Вчитување...</span>
+                                                            Вчитување...
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Service and Doctor Selection (Initially hidden) -->
+                        <div class="col-md-6">
+                            <div id="selectionOptions" style="display: none;">
+                                <!-- Service Selection -->
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">ОДБЕРЕТЕ ОДДЕЛЕНИЕ</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <select class="form-select" id="departmentSelect" disabled>
+                                            <option value="">Одберете одделение...</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Doctor Selection -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">ОДБЕРЕТЕ ДОКТОР</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <select class="form-select" id="doctorSelect" disabled>
+                                            <option value="">Одберете доктор...</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Selected Info -->
+                                <div class="card mt-3" id="selectedInfoCard" style="display: none;">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Избрани информации</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p><strong>Клиника:</strong> <span id="selectedHospital"></span></p>
+                                        <p><strong>Услуга:</strong> <span id="selectedDepartment"></span></p>
+                                        <p><strong>Доктор:</strong> <span id="selectedDoctor"></span></p>
+                                        <button class="btn btn-primary w-100" id="continueBtn" disabled>Продолжете со закажувањето</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<!-- Add this section right after the existing selected info card -->
+
+
+<style>
+    .card {
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+        cursor: pointer;
+    }
+    .table-hover tbody tr.selected {
+        background-color: #007bff;
+        color: white;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        padding: 10px;
+        font-weight: 500;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>document.addEventListener("DOMContentLoaded", function() {
+    const hospitalTable = document.getElementById('hospitalTable');
+    const selectionOptions = document.getElementById('selectionOptions');
+    const departmentSelect = document.getElementById('departmentSelect');
+    const doctorSelect = document.getElementById('doctorSelect');
+    const selectedInfoCard = document.getElementById('selectedInfoCard');
+    const continueBtn = document.getElementById('continueBtn');
+    const selectedHospital = document.getElementById('selectedHospital');
+    const selectedDepartment = document.getElementById('selectedDepartment');
+    const selectedDoctor = document.getElementById('selectedDoctor');
+
+
+    let selectedHospitalId = null;
+    let selectedDepartmentId = null;
+    let allDoctors = []; // Store all doctors for the hospital
+    let filteredDoctors = []; // Store filtered doctors by department
+
+    // Function to clear all selections
+    function clearAllSelections() {
+        // Reset dropdowns to default state
+        departmentSelect.innerHTML = '<option value="">Одберете одделение...</option>';
+        doctorSelect.innerHTML = '<option value="">Одберете доктор...</option>';
+        
+        // Clear displayed values
+        selectedDepartment.textContent = '';
+        selectedDoctor.textContent = '';
+        
+        // Disable dropdowns until new data loads
+        departmentSelect.disabled = true;
+        doctorSelect.disabled = true;
+        
+        // Disable continue button
+        continueBtn.disabled = true;
+        
+        // Clear stored data
+        allDoctors = [];
+        filteredDoctors = [];
+        selectedDepartmentId = null;
+    }
+
+    // Load hospitals
+    axios.get('/api/hospitals/hospitals/')
+        .then(response => {
+            const hospitals = response.data;
+            const tbody = hospitalTable.querySelector('tbody');
+            tbody.innerHTML = '';
+
+            hospitals.forEach(hospital => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${hospital.name}</td>
+                    <td>${hospital.town || 'Неодреден'}, ${hospital.address || ''}</td>
+                    <td>
+                        <input type="radio" name="hospital" value="${hospital.id}">
+                    </td>
+                `;
+                row.addEventListener('click', function() {
+                    // Remove previous selection
+                    document.querySelectorAll('#hospitalTable tbody tr').forEach(r => {
+                        r.classList.remove('selected');
+                        r.querySelector('input[type="radio"]').checked = false;
+                    });
+                    
+                    // Select this row
+                    this.classList.add('selected');
+                    this.querySelector('input[type="radio"]').checked = true;
+                    
+                    // Clear all previous selections before loading new hospital data
+                    clearAllSelections();
+                    
+                    selectedHospitalId = hospital.id;
+                    selectedHospital.textContent = hospital.name;
+                    
+                    // Show selection options
+                    selectionOptions.style.display = 'block';
+                    
+                    // Load departments and doctors for this hospital
+                    loadDepartments(hospital.id);
+                    loadAllDoctors(hospital.id);
+                    
+                    // Show selected info
+                    selectedInfoCard.style.display = 'block';
+                });
+                tbody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading hospitals:', error);
+            hospitalTable.querySelector('tbody').innerHTML = `
+                <tr>
+                    <td colspan="3" class="text-center text-danger">
+                        Грешка при вчитување на клиниките. Обидете се повторно.
+                    </td>
+                </tr>
+            `;
+        });
+
+    // Load departments for selected hospital
+    function loadDepartments(hospitalId) {
+        departmentSelect.innerHTML = '<option value="">Вчитување на одделенија...</option>';
+        departmentSelect.disabled = true;
+
+        axios.get(`/api/hospitals/hospitals/${hospitalId}/departments/`)
+            .then(response => {
+                const departments = response.data;
+                departmentSelect.innerHTML = '<option value="">Одберете одделение...</option>';
+                
+                departments.forEach(department => {
+                    const option = document.createElement('option');
+                    option.value = department.id;
+                    option.textContent = department.name;
+                    departmentSelect.appendChild(option);
+                });
+                if (departments.length === 0 ){
+                    departmentSelect.innerHTML = '<option value="">Нема одделенија во оваа клиника</option>';
+                }
+                departmentSelect.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error loading departments:', error);
+                departmentSelect.innerHTML = '<option value="">Грешка при вчитување</option>';
+            });
+    }
+
+    // Load ALL doctors for the selected hospital
+    function loadAllDoctors(hospitalId) {
+        doctorSelect.innerHTML = '<option value="">Вчитување на доктори...</option>';
+        doctorSelect.disabled = true;
+
+        // Use your existing hospital doctors endpoint
+        axios.get(`/api/hospitals/hospitals/${hospitalId}/doctors/`)
+            .then(response => {
+                allDoctors = response.data;
+                populateDoctorDropdown(allDoctors);
+                doctorSelect.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error loading doctors:', error);
+                doctorSelect.innerHTML = '<option value="">Грешка при вчитување</option>';
+            });
+    }
+
+    // Populate doctor dropdown with doctors
+    function populateDoctorDropdown(doctors) {
+        doctorSelect.innerHTML = '<option value="">Изберете доктор...</option>';
+        
+        if (doctors.length === 0) {
+            doctorSelect.innerHTML = '<option value="">Нема доктори во оваа клиника</option>';
+            return;
+        }
+        
+        doctors.forEach(doctor => {
+            const option = document.createElement('option');
+            option.value = doctor.id;
+            option.textContent = `Д-р ${doctor.first_name} ${doctor.last_name}`;
+            option.dataset.department = doctor.department_id || ''; 
+            doctorSelect.appendChild(option);
+        });
+    }
+
+    // Filter doctors based on selected department
+    function filterDoctorsByDepartment(departmentId) {
+        if (!departmentId) {
+            // Show all doctors if no department selected
+            populateDoctorDropdown(allDoctors);
+            return;
+        }
+
+        // Filter doctors by department
+        filteredDoctors = allDoctors.filter(doctor => 
+            doctor.department_id == departmentId || 
+            (doctor.departments && doctor.departments.includes(parseInt(departmentId)))
+        );
+        
+        populateDoctorDropdown(filteredDoctors);
+    }
+
+    // Department selection handler
+    departmentSelect.addEventListener('change', function() {
+        const departmentId = this.value;
+        selectedDepartmentId = departmentId;
+        
+        if (departmentId) {
+            selectedDepartment.textContent = this.options[this.selectedIndex].text;
+            // Filter doctors by selected department
+            filterDoctorsByDepartment(departmentId);
+        } else {
+            selectedDepartment.textContent = '';
+            // Show all doctors when no department is selected
+            populateDoctorDropdown(allDoctors);
+        }
+        
+        checkContinueButton();
+    });
+
+    // Doctor selection handler
+    doctorSelect.addEventListener('change', function() {
+        if (this.value) {
+            selectedDoctor.textContent = this.options[this.selectedIndex].text;
+            
+            // Auto-select the department if a doctor is selected
+            const selectedDoctorOption = this.options[this.selectedIndex];
+            const doctorDepartmentId = selectedDoctorOption.dataset.department;
+            
+            if (doctorDepartmentId && departmentSelect.value !== doctorDepartmentId) {
+                departmentSelect.value = doctorDepartmentId;
+                selectedDepartment.textContent = departmentSelect.options[departmentSelect.selectedIndex].text;
+                selectedDepartmentId = doctorDepartmentId;
+            }
+        } else {
+            selectedDoctor.textContent = '';
+        }
+        
+        checkContinueButton();
+    });
+    // Check if continue button should be enabled
+    function checkContinueButton() {
+        continueBtn.disabled = !(doctorSelect.value);
+    }
+
+    // Continue button handler
+    continueBtn.addEventListener('click', function() {
+        window.location.href = `/api/hospitals/service/`;
+    });
+});
+</script>
+
+{% endblock %}
+
