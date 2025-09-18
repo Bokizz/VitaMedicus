@@ -125,7 +125,7 @@
         const data = await response.json();
 
         if (response.ok) {
-            alert(data.message || "Успешно се најавивте!");
+            console.log("Успешна најава!");
             
             if (data.redirect_url) {
                 window.location.href = data.redirect_url;
