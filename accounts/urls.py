@@ -4,6 +4,11 @@ from .views import *
 urlpatterns = [
     path('home/', home_page, name='home'),
 
+    path('profile/', profile_page, name = 'profile'),
+    path('update-profile/', update_profile, name='update_profile'),
+    path('update-security/', update_security, name='update_security'),
+    path('delete-account/', delete_account, name='delete_account'),
+
     path('register/patient', PatientRegistrationView.as_view(), name = 'registration'),
     
     path('register/doctor/', DoctorRegistrationView.as_view(), name = 'doctor-registration'),
@@ -18,12 +23,12 @@ urlpatterns = [
     path('verify/', verification_page, name = 'verify_page'),
     path('resend-sms/', ResendSMSCodeView.as_view(), name = 'resend-sms'),
 
-    path('forgot-password/', ForgotPasswordView.as_view(),name = "forgot-password"),
-    path('forgot-password-page/', forgot_password_page, name = "forgot-password_page"),
+    path('forgot-password/', ForgotPasswordView.as_view(),name = 'forgot-password'),
+    path('forgot-password-page/', forgot_password_page, name = 'forgot-password_page'),
 
-    path('reset-password/', ResetPasswordView.as_view(), name = "reset-password"),
-    path('reset-password-page/', reset_password_page, name="reset-password_page"),
+    path('reset-password/', ResetPasswordView.as_view(), name = 'reset-password'),
+    path('reset-password-page/', reset_password_page, name='reset-password_page'),
 
-    path('departments/', departments_by_hospital, name="departments_by_hospital"),
-    path('services/', services_by_department, name="services_by_department"),
+    path('departments/', departments_by_hospital, name='departments_by_hospital'),
+    path('services/', services_by_department, name='services_by_department'),
 ]

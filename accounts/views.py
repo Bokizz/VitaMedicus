@@ -1,8 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from django.utils import timezone
 from django.contrib.auth import get_user_model,login,logout,authenticate
 from django.utils.crypto import get_random_string
 from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction
 
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
@@ -16,6 +19,142 @@ from .serializers import *
 from .models import PhoneVerification,Doctor
 from .permissions import NotBlacklisted
 import smtplib
+
+def authentication_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('/api/accounts/login/')  # Replace 'login' with your login URL name
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+@authentication_required
+def profile_page(request):
+    return render(request,"accounts/profile.html")
+
+@authentication_required
+@csrf_exempt
+def update_profile(request):
+    try:
+        user = request.user
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
+        user.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Profile updated successfully'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        })
+
+@authentication_required
+@csrf_exempt
+def update_security(request):
+    try:
+        user = request.user
+        phone_number = request.POST.get('phone_number')
+        password = request.POST.get('password')
+        share_info = request.POST.get('share_info') == 'on'
+        
+        requires_verification = False
+        
+        # Update phone number if changed
+        if phone_number != user.phone_number:
+            user.phone_number = phone_number
+            user.is_verified = False  # Mark as unverified
+            requires_verification = True
+        
+        # Update password if provided
+        if password:
+            user.set_password(password)
+        
+        # Update share information preference
+        user.share_info = share_info
+        
+        user.save()
+        
+        return JsonResponse({
+            'success': True,
+            'requires_verification': requires_verification,
+            'message': 'Security settings updated successfully'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        })
+
+# @authentication_required
+# @csrf_exempt
+# def delete_account(request):
+#     try:
+#         user = request.user
+        
+#         # Use transaction to ensure all operations succeed or fail together
+#         with transaction.atomic():
+#             # Optional: Archive user data before deletion (if needed)
+#             # archive_user_data(user)
+#             # Log the user out before deleting the account
+#             logout(request)
+            
+#             # Delete the user account
+#             user.delete()
+        
+#         return JsonResponse({
+#             'success': True,
+#             'message': 'Вашиот профил е успешно избришан.'
+#         })
+        
+#     except Exception as e:
+#         return JsonResponse({
+#             'success': False,
+#             'message': f'Грешка при бришење на профилот: {str(e)}'
+#         })
+@authentication_required
+@csrf_exempt
+def delete_account(request):
+    try:
+        data = json.loads(request.body)
+        password = data.get('password', '')
+        
+        # Verify password before deletion (optional extra security)
+        if password and not request.user.check_password(password):
+            return JsonResponse({
+                'success': False,
+                'message': 'Погрешна лозинка. Неуспешно бришење на профилот.'
+            })
+        
+        user = request.user
+        
+        # Use transaction to ensure all operations succeed or fail together
+        with transaction.atomic():
+            # Optional: Archive user data before deletion
+            # archive_user_data(user)
+            
+            # Log the user out before deleting the account
+            logout(request)
+            
+            # Delete the user account
+            user.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Вашиот профил е успешно избришан.'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Грешка при бришење на профилот: {str(e)}'
+        })
 
 def verification_page(request):
     phone_number = request.GET.get('phone_number', '')
@@ -36,6 +175,8 @@ def reset_password_page(request):
         })
     context = {'token': token}
     return render(request, "accounts/reset_password.html",context)
+
+@authentication_required
 def home_page(request):
     return render(request, "home.html")
 
