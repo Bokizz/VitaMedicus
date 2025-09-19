@@ -91,71 +91,7 @@ def update_security(request):
             'success': False,
             'message': str(e)
         })
-
-# @authentication_required
-# @csrf_exempt
-# def delete_account(request):
-#     try:
-#         user = request.user
         
-#         # Use transaction to ensure all operations succeed or fail together
-#         with transaction.atomic():
-#             # Optional: Archive user data before deletion (if needed)
-#             # archive_user_data(user)
-#             # Log the user out before deleting the account
-#             logout(request)
-            
-#             # Delete the user account
-#             user.delete()
-        
-#         return JsonResponse({
-#             'success': True,
-#             'message': 'Вашиот профил е успешно избришан.'
-#         })
-        
-#     except Exception as e:
-#         return JsonResponse({
-#             'success': False,
-#             'message': f'Грешка при бришење на профилот: {str(e)}'
-#         })
-@authentication_required
-@csrf_exempt
-def delete_account(request):
-    try:
-        data = json.loads(request.body)
-        password = data.get('password', '')
-        
-        # Verify password before deletion (optional extra security)
-        if password and not request.user.check_password(password):
-            return JsonResponse({
-                'success': False,
-                'message': 'Погрешна лозинка. Неуспешно бришење на профилот.'
-            })
-        
-        user = request.user
-        
-        # Use transaction to ensure all operations succeed or fail together
-        with transaction.atomic():
-            # Optional: Archive user data before deletion
-            # archive_user_data(user)
-            
-            # Log the user out before deleting the account
-            logout(request)
-            
-            # Delete the user account
-            user.delete()
-        
-        return JsonResponse({
-            'success': True,
-            'message': 'Вашиот профил е успешно избришан.'
-        })
-        
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'message': f'Грешка при бришење на профилот: {str(e)}'
-        })
-
 def verification_page(request):
     phone_number = request.GET.get('phone_number', '')
     context = {'phone_number': phone_number}

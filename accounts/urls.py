@@ -7,7 +7,6 @@ urlpatterns = [
     path('profile/', profile_page, name = 'profile'),
     path('update-profile/', update_profile, name='update_profile'),
     path('update-security/', update_security, name='update_security'),
-    path('delete-account/', delete_account, name='delete_account'),
 
     path('register/patient', PatientRegistrationView.as_view(), name = 'registration'),
     
