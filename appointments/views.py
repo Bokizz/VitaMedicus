@@ -19,7 +19,14 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from django.utils import timezone
 
+def authentication_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('/api/accounts/login/')  # Replace 'login' with your login URL name
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
+@authentication_required    
 def appointment_page(request):
     return render(request,"appointments/appointment.html")
 
