@@ -114,17 +114,6 @@
                             </form>
                         </div>
                     </div>
-                    
-                    <!-- Delete account card -->
-                    <div class="card mb-4">
-                        <div class="card-header">Избришете Профил</div>
-                        <div class="card-body">
-                            <p>Бришењето на профилот е трајна одлука, со бришењето ги губите сите претходно спроведени прегледи и увидите од докторите за истите. Дали сте сигурни и разбирате што значи ова?</p> 
-                            <button class="btn btn-danger-soft text-danger" type="button" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
-                                Разбирам, избришете го мојот профил.
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -421,34 +410,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Delete account functionality
-    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-    if (confirmDeleteBtn){
-    confirmDeleteBtn.addEventListener('click', function() {
-        // Implement account deletion logic here
-        if (confirm('Дали сте апсолутно сигурни? Оваа акција е неповратна!')) {
-            fetch('{% url "delete_account" %}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Вашиот профил е успешно избришан.');
-                    window.location.href = "{% url 'home' %}";
-                } else {
-                    alert('Грешка при бришење на профилот: ' + (data.message || 'Обидете се повторно.'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Настана грешка. Обидете се повторно.');
-            });
-        }
-    });}
     
     // Phone number validation function
     function isValidPhoneNumber(phone) {
