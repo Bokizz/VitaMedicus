@@ -20,24 +20,6 @@ class Hospital(models.Model): # DODAJ GRAD za da se filtrira, trgni qr code stav
     town = models.CharField(max_length=30,default='NON')
     #rating foreign key
 
-    # qr_code = models.ImageField(upload_to="hospital_qrcodes/", blank = True, null = True)
-
-    # def save(self,*args,**kwargs):
-    #     if self.latitude and self.longitude:
-    #         maps_url = f"https://www.google.com/maps?q={self.latitude},{self.longitude}"
-    #     elif self.address:
-    #         maps_url = f"https://www.google.com/maps/search/?api=1&query={self.address}"
-    #     else:
-    #         maps_url = None
-        
-    #     if maps_url:
-    #         qr = qrcode.make(maps_url)
-    #         buffer = BytesIO()
-    #         qr.save(buffer, format="PNG")
-    #         file_name = f"{self.name}_qr.png"
-    #         self.qr_code.save(file_name, ContentFile(buffer.getvalue()), save = False)
-
-        # super().save(*args,**kwargs)
     def __str__(self):
         return self.name
     
