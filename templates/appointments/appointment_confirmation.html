@@ -1,0 +1,29 @@
+<!-- appointment_confirmation.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Терминот е успешно закажан!</h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                    </div>
+                    <p>Вашиот термин е успешно закажан. Ќе добиете потврда на вашиот email.</p>
+                    <div class="alert alert-info">
+                        <strong>Забелешка:</strong> Терминот е со статус "на чекање" додека не биде потврден од клиниката.
+                    </div>
+                    <div class="mt-4">
+                        <a href="{% url 'home' %}" class="btn btn-primary">Кон почетна страна</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
