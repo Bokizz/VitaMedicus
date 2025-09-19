@@ -536,37 +536,6 @@
             confirmBtn.innerHTML = originalText;
         }
     });
-
-    // function checkElementExists(id) {
-    //     const element = document.getElementById(id);
-    //     if (!element) {
-    //         console.error(`Element with ID '${id}' not found`);
-    //         return false;
-    //     }
-    //     console.log(`Element '${id}':`, element);
-    //     return true;
-    // }
-    
-    // // Form submission handler
-    // document.getElementById('appointmentForm').addEventListener('submit', async function(e) {
-    //     e.preventDefault();
-        
-    //     // Debug: Check if all required elements exist
-    //     const requiredElements = [
-    //         'form-doctor-id',
-    //         'form-department-id', 
-    //         'selected-service-id',
-    //         'selected-date',
-    //         'selected-time'
-    //     ];
-        
-    //     for (const id of requiredElements) {
-    //         if (!checkElementExists(id)) {
-    //             alert(`Грешка: Недостасува задолжителна информација (${id}). Ве молиме освежете ја страницата и обидете се повторно.`);
-    //             return;
-    //         }
-    //     }
-    // });
         {% endif %}
     });
 </script>

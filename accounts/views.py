@@ -17,6 +17,7 @@ from datetime import timedelta
 
 from .serializers import *
 from .models import PhoneVerification,Doctor
+from appointments.models import Appointment
 from .permissions import NotBlacklisted
 import smtplib
 
@@ -114,7 +115,25 @@ def reset_password_page(request):
 
 @authentication_required
 def home_page(request):
-    return render(request, "home.html")
+    from django.utils import timezone
+    from datetime import date
+    appointments = Appointment.objects.filter(
+        patient=request.user,
+        booked=True,
+        date__gte=date.today()
+    ).exclude(
+        status='cancelled'
+    ).select_related(
+        'doctor', 
+        'doctor__user', 
+        'doctor__hospital', 
+        'service'
+    ).order_by('date', 'start_time')
+    context = {
+        'appointments': appointments,
+        'today': timezone.now().date()
+    }
+    return render(request, "home.html",context)
 
 
 class PatientRegistrationView(generics.CreateAPIView):

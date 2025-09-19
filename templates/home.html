@@ -39,30 +39,35 @@
                     {% if appointments %}
                         <div class="appointments-list">
                             {% for appointment in appointments %}
-                                <div class="appointment-card card mb-3">
+                                <div class="appointment-card card mb-3" data-appointment-id="{{ appointment.id }}">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
                                                 <h5 class="card-title mb-1">{{ appointment.service.name }}</h5>
                                                 <p class="card-text mb-1">
-                                                    <strong>Доктор:</strong> Др. {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}
+                                                    <strong>Доктор:</strong> Д-р {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}
                                                 </p>
                                                 <p class="card-text mb-1">
-                                                    <strong>Клиника:</strong> {{ appointment.doctor.hospital.name }}
+                                                    <strong>Клиника:</strong> {{ appointment.hospital.name }}
                                                 </p>
                                                 <p class="card-text mb-1">
-                                                    <strong>Дата и време:</strong> {{ appointment.date_time|date:"d.m.Y H:i" }}
+                                                    <strong>Дата и време:</strong> {{ appointment.date }} {{ appointment.start_time|time:"H:i" }}-{{ appointment.end_time|time:"H:i" }}
                                                 </p>
                                                 <p class="card-text">
                                                     <strong>Статус:</strong> 
-                                                    <span class="badge {% if appointment.status == 'scheduled' %}bg-warning{% elif appointment.status == 'confirmed' %}bg-success{% elif appointment.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
-                                                        {{ appointment.get_status_display }}
+                                                    <span class="badge {% if appointment.status == 'pending' %}bg-warning{% elif appointment.status == 'confirmed' %}bg-success{% elif appointment.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                        {% if appointment.status == 'pending' %}Чекање на потврда
+                                                        {% elif appointment.status == 'confirmed' %}Потврдено
+                                                        {% elif appointment.status == 'cancelled' %}Откажано
+                                                        {% else %}{{ appointment.status }}{% endif %}
                                                     </span>
                                                 </p>
                                             </div>
                                             <div class="text-end">
                                                 <button class="btn btn-outline-primary btn-sm me-2">Детали</button>
-                                                <button class="btn btn-outline-danger btn-sm">Откажи</button>
+                                                {% if appointment.status != 'cancelled' and appointment.can_cancel %}
+                                                <button class="btn btn-outline-danger btn-sm" data-appointment-id="{{ appointment.id }}">Откажи</button>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
@@ -145,4 +150,83 @@
         font-size: 0.8rem;
     }
 </style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Cancel appointment functionality
+    document.querySelectorAll('.btn-outline-danger').forEach(button => {
+        button.addEventListener('click', function() {
+            const appointmentCard = this.closest('.appointment-card');
+            const appointmentId = this.dataset.appointmentId;
+            
+            if (!appointmentId) {
+                console.error('Appointment ID not found');
+                return;
+            }
+            
+            if (!confirm('Дали сте сигурни дека сакате да го откажете овој термин?')) {
+                return;
+            }
+            
+            // Show loading state
+            const originalText = this.innerHTML;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+            this.disabled = true;
+            
+            // Send cancel request
+            fetch(`/api/appointments/${appointmentId}/cancel/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove appointment card from UI
+                    appointmentCard.remove();
+                    
+                    // Show success message
+                    alert('Терминот е успешно откажан.');
+                    
+                    // If no appointments left, show empty state
+                    if (document.querySelectorAll('.appointment-card').length === 0) {
+                        document.querySelector('.appointments-list').innerHTML = `
+                            <div class="text-center py-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-calendar-x text-muted mb-3" viewBox="0 0 16 16">
+                                    <path d="M6.146 7.146a.5.5 0 0 1 .708 0L8 8.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 9l1.147 1.146a.5.5 0 0 1-.708.708L8 9.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 9 6.146 7.854a.5.5 0 0 1 0-.708"/>
+                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
+                                </svg>
+                                <h5 class="text-muted">Немате претстојни термини</h5>
+                                <p class="text-muted">Закажете го вашиот прв термин и ќе се појави тука.</p>
+                                <a href="/api/appointments/appointment/" class="btn btn-primary">Закажете Термин</a>
+                            </div>
+                        `;
+                    }
+                } else {
+                    alert(`Грешка: ${data.error}`);
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Грешка при откажување на терминот. Обидете се повторно.');
+                this.innerHTML = originalText;
+                this.disabled = false;
+            });
+        });
+    });
+    
+    // Add appointment IDs to cancel buttons
+    document.querySelectorAll('.appointment-card').forEach((card, index) => {
+        const cancelButton = card.querySelector('.btn-outline-danger');
+        if (cancelButton) {
+            // You'll need to pass appointment ID from backend or use data attributes
+            // For now, we'll use a data attribute on the card
+            cancelButton.dataset.appointmentId = card.dataset.appointmentId || '{{ appointments.0.id }}';
+        }
+    });
+});
+</script>
 {% endblock %}

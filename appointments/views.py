@@ -35,6 +35,33 @@ def appointment_page(request):
 def appointment_confirmation_page(request):
     return render(request, "appointments/appointment_confirmation.html")
 
+def cancel_appointment(request, appointment_id):
+    try:
+        appointment = Appointment.objects.get(
+            id=appointment_id,
+            patient=request.user,
+            booked=True
+        )
+        
+        # Check if appointment can be cancelled (at least 24h before)
+        if not appointment.can_cancel():
+            return JsonResponse({
+                'success': False,
+                'error': 'Терминот може да се откаже најмалку 24 часа пред почетокот.'
+            })
+        
+        appointment.status = 'cancelled'
+        appointment.booked = False
+        appointment.save()
+        
+        return JsonResponse({'success': True})
+        
+    except Appointment.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Терминот не е пронајден.'
+        })
+
 def download_appointment_pdf(request, appointment_id): # permissions.isAuthenticated dodaj posle test
     try:
         appointment = Appointment.objects.get(id=appointment_id)
@@ -81,24 +108,6 @@ def send_document(request, appointment_id):
     except Exception as e:
         return Response({"error": str(e)}, status=500)
     return Response({"message": "PDF е испратен на вашата е-пошта успешно!"})
-
-
-# class AvailableAppointmentsView(generics.ListAPIView):
-#     serializer_class = AppointmentSerializer
-#     # permission_classes = [IsAuthenticated] KOGA KJE DODADESH LOGIN SESSION
-
-#     def get_queryset(self):
-#         doctor_id = self.request.query_params.get("doctor")
-#         date = self.request.query_params.get("date")
-#         qs = Appointment.objects.filter(booked=False)
-
-#         if doctor_id:
-#             qs = qs.filter(doctor_id=doctor_id)
-#         if date:
-#             qs = qs.filter(date=date)
-
-#         return qs
-
 
 class FindAppointmentView(generics.ListAPIView):
     serializer_class = AppointmentSerializer
