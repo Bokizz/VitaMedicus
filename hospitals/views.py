@@ -1,45 +1,38 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from .models import *
 from rest_framework import generics
 from django.http import JsonResponse
 from .serializers import *
+from django.shortcuts import get_object_or_404
+from accounts.models import Doctor
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
+
 
 def service_page(request):
      # Get doctor_id and department_id from query parameters or session
     doctor_id = request.GET.get('doctor_id') or request.session.get('doctor_id')
     department_id = request.GET.get('department_id') or request.session.get('department_id')
-    
     if not doctor_id or not department_id:
-        # Handle missing parameters - redirect or show error
-        return render(request, 'service.html', {
-            'error': 'Доктор или одделение не се специфицирани'
-        })
+        return Response("NEMA DOKTOR ID ILI DEPARTMENT ID")
     
-    # Get doctor and department objects
-    doctor = get_object_or_404(Doctor, id=doctor_id, authorized=True)
-    department = get_object_or_404(Department, id=department_id)
-    
+    doctor_id = int(doctor_id)
+    department_id = int(department_id)
+
     # Store in session for potential future use
     request.session['doctor_id'] = doctor_id
     request.session['department_id'] = department_id
-    
-    # Get services for this doctor in the specified department
-    services_assignments = DoctorServiceAssignment.objects.filter(
-        doctor_id=doctor_id,
-        approved=True,
-        available=True,
-        service__department_id=department_id
-    ).select_related('service')
-    
-    # Format the services data
-    services = []
-    for assignment in services_assignments:
-        services.append({
-            'id': assignment.service.id,
-            'name': assignment.service.name,
-            'description': assignment.service.description,
-        })
-    
+    doctor = Doctor.objects.select_related(
+            'user', 
+            'hospital'
+        ).filter(
+            id=doctor_id,
+            authorized=True,
+            user__is_active=True,
+            user__is_blacklisted=False
+        ).first()
+    department = get_object_or_404(Department, id=department_id)    
     context = {
         'doctor': {
             'id': doctor.id,
@@ -48,10 +41,8 @@ def service_page(request):
         'department': {
             'id': department.id,
             'name': department.name
-        },
-        'services': services
+        }
     }
-
     return render(request,"services/service.html",context)
 
 def hospitals_data(request):
@@ -153,35 +144,40 @@ class DepartmentDoctorsView(generics.ListAPIView):
         
         return queryset
 
-class DoctorServicesView(generics.ListAPIView):
-    serializer_class = DoctorServicesSerializer
-
-    def get_queryset(self):
-        doctor_id = self.kwargs.get('doctor_id')
-        department_id = self.kwargs.get('department_id')
+class DoctorServicesView(APIView):
+    def get(self, request, doctor_id):
+        department_id = request.GET.get('department_id') or request.session.get('department_id')
         
-        if not doctor_id:
-            return DoctorServiceAssignment.objects.none()
-        
-        queryset = DoctorServiceAssignment.objects.filter(
-            doctor_id=doctor_id,
-            approved=True,
-            available=True,
-            doctor__authorized=True,
-            doctor__user__is_blacklisted=False
-        ).select_related('service')
-
-        return queryset
-    
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        
-        if not queryset.exists():
+        if not department_id:
             return Response({
-                "detail": "No services found for this doctor",
-                "doctor_id": self.kwargs.get('doctor_id'),
-                "department_id": self.kwargs.get('department_id')
-            }, status=status.HTTP_404_NOT_FOUND)
+                "error": "Department ID is required"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            # Get approved services for this doctor in the specified department
+            services_assignments = DoctorServiceAssignment.objects.filter(
+                doctor_id=doctor_id,
+                approved=True,
+                available=True,
+                service__department_id=department_id
+            ).select_related('service')
             
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+            # Format the response
+            services = []
+            for assignment in services_assignments:
+                services.append({
+                    'id': assignment.service.id,
+                    'name': assignment.service.name,
+                    'description': assignment.service.description,
+                })
+            
+            return Response({
+                'services': services,
+                'doctor_id': doctor_id,
+                'department_id': department_id
+            })
+        
+        except Exception as e:
+            return Response({
+                "error": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

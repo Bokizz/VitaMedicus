@@ -342,7 +342,9 @@
 
     // Continue button handler
     continueBtn.addEventListener('click', function() {
-        window.location.href = `/api/hospitals/service/`;
+        const doctorId = doctorSelect.value;
+        const departmentId = departmentSelect.value;
+        window.location.href = `/api/hospitals/service/?doctor_id=${doctorId}&department_id=${departmentId}`;
     });
 });
 </script>

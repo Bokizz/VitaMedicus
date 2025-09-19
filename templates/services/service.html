@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<main class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Одберете Услуга</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Doctor and Department Info -->
+                    <div class="alert alert-info">
+                        <strong>Доктор:</strong> <span id="doctor-name">{{ doctor.name }}</span><br>
+                        <strong>Одделение:</strong> <span id="department-name">{{ department.name }}</span>
+                    </div>
+                    
+                    <!-- Loading indicator -->
+                    <div id="loading" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Вчитување на услуги...</p>
+                    </div>
+                    
+                    <!-- Error message -->
+                    <div id="error-message" class="alert alert-danger d-none"></div>
+                    
+                    <!-- Services Table -->
+                    <form id="serviceForm" method="POST" action="#" class="d-none">
+                        {% csrf_token %}
+                        <input type="hidden" name="doctor_id" id="form-doctor-id" value="{{ doctor.id }}">
+                        <input type="hidden" name="department_id" id="form-department-id" value="{{ department.id }}">
+                        
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" style="width: 50px;"></th>
+                                        <th scope="col">Услуга</th>
+                                        <th scope="col">Опис</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="services-table-body">
+                                    <!-- Services will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Продолжете со закажување <i class="ms-2 bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    .card {
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+        cursor: pointer;
+    }
+    .table-hover tbody tr.selected {
+        background-color: #007bff;
+        color: white;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        padding: 10px 20px;
+        font-weight: 500;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+    .form-check-input:checked {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    tbody tr {
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const doctorId = {{ doctor.id }};
+        const departmentId = {{ department.id }};
+        const loadingElement = document.getElementById('loading');
+        const errorElement = document.getElementById('error-message');
+        const formElement = document.getElementById('serviceForm');
+        const tableBody = document.getElementById('services-table-body');
+        
+        // Fetch services from API
+        fetch(`/api/hospitals/service/${doctorId}/services/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loading indicator
+                loadingElement.classList.add('d-none');
+                
+                if (data.services && data.services.length > 0) {
+                    // Populate the table with services
+                    data.services.forEach(service => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>
+                                <div class="form-check">
+                                    <input class="form-check-input service-checkbox" type="radio" 
+                                           name="service_id" id="service${service.id}" 
+                                           value="${service.id}" required>
+                                    <label class="form-check-label" for="service${service.id}"></label>
+                                </div>
+                            </td>
+                            <td>
+                                <label for="service${service.id}" class="fw-bold">${service.name}</label>
+                            </td>
+                            <td>${service.description || ''}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                    
+                    // Show the form
+                    formElement.classList.remove('d-none');
+                    
+                    // Set up row selection behavior
+                    setupRowSelection();
+                } else {
+                    // No services available
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td colspan="3" class="text-center">Нема достапни услуги за овој доктор.</td>
+                    `;
+                    tableBody.appendChild(row);
+                    formElement.classList.remove('d-none');
+                }
+            })
+            .catch(error => {
+                // Hide loading indicator and show error
+                loadingElement.classList.add('d-none');
+                errorElement.textContent = 'Грешка при вчитување на услуги. Обидете се повторно.';
+                errorElement.classList.remove('d-none');
+                console.error('Error:', error);
+            });
+        
+        function setupRowSelection() {
+            // Make entire row clickable for radio buttons
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                row.addEventListener('click', function(e) {
+                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
+                        const radio = this.querySelector('input[type="radio"]');
+                        if (radio) {
+                            radio.checked = true;
+                            // Remove selected class from all rows
+                            rows.forEach(r => r.classList.remove('selected'));
+                            // Add selected class to current row
+                            this.classList.add('selected');
+                        }
+                    }
+                });
+            });
+            
+            // Update row selection when radio is clicked directly
+            const radios = document.querySelectorAll('.service-checkbox');
+            radios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    rows.forEach(r => r.classList.remove('selected'));
+                    if (this.checked) {
+                        this.closest('tr').classList.add('selected');
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

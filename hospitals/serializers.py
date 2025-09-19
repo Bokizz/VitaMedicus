@@ -15,7 +15,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
-        fields = ['id', 'name', 'department','description']
+        fields = ['id', 'name','description']
 
 class DoctorSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name', read_only=True)
@@ -65,10 +65,8 @@ class DoctorServicesSerializer(serializers.ModelSerializer):
         fields = [
             'doctor_id',
             'service_details',
-            'service_description',
             'available',
             'approved',
-            'approved_at',
         ]
         
 # class DoctorServicesSerializer(serializers.ModelSerializer):
