@@ -88,7 +88,7 @@
                                         </div>
                                         
                                         <!-- Continue Button -->
-                                        <form id="appointmentForm" method="POST" action="/api/appointments/appointment-confirmation/">
+                                        <form id="appointmentForm" method="POST" action="#">
                                             {% csrf_token %}
                                             <input type="hidden" name="doctor_id" id="form-doctor-id" value="{{ doctor.id }}">
                                             <input type="hidden" name="department_id" id="form-department-id" value="{{ department.id }}">
@@ -434,126 +434,139 @@
             });
     });
 
-    // // Form submission handler
-    // document.getElementById('appointmentForm').addEventListener('submit', async function(e) {
-    //     e.preventDefault();
-        
-    //     const confirmBtn = document.getElementById('confirmBtn');
-    //     const originalText = confirmBtn.innerHTML;
-        
-    //     // Show loading state
-    //     confirmBtn.disabled = true;
-    //     confirmBtn.innerHTML = `
-    //         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-    //         Закажување...
-    //     `;
-        
-    //     try {
-    //         // Get form values with null checks
-    //         const doctorIdElement = document.getElementById('form-doctor-id');
-    //         const departmentIdElement = document.getElementById('form-department-id');
-    //         const serviceIdElement = document.getElementById('selected-service-id');
-    //         const dateElement = document.getElementById('selected-date');
-    //         const timeElement = document.getElementById('selected-time');
-    //         const csrfElement = document.querySelector('[name=csrfmiddlewaretoken]');
-            
-    //         // Check if all required elements exist
-    //         if (!doctorIdElement || !departmentIdElement || !serviceIdElement || 
-    //             !dateElement || !timeElement || !csrfElement) {
-    //             throw new Error('Недостасуваат потребните информации за закажување.');
-    //         }
-            
-    //         const doctorId = doctorIdElement.value;
-    //         const departmentId = departmentIdElement.value;
-    //         const serviceId = serviceIdElement.value;
-    //         const appointmentDate = dateElement.value;
-    //         const appointmentTime = timeElement.value;
-    //         const csrfToken = csrfElement.value;
-            
-    //         // Validate that all values are provided
-    //         if (!doctorId || !departmentId || !serviceId || !appointmentDate || !appointmentTime) {
-    //             throw new Error('Сите полиња се задолжителни. Ве молиме пополнете ги сите информации.');
-    //         }
-            
-    //         // Debug: log the values being sent
-    //         console.log('Sending:', {
-    //             doctorId, departmentId, serviceId, appointmentDate, appointmentTime
-    //         });
-            
-    //         // First, find the appointment ID
-    //         const findResponse = await fetch(`/api/appointments/find/?doctor_id=${doctorId}&date=${appointmentDate}&time=${appointmentTime}`);
-            
-    //         if (!findResponse.ok) {
-    //             throw new Error('Грешка при пронаоѓање на терминот');
-    //         }
-            
-    //         const appointments = await findResponse.json();
-            
-    //         if (!appointments || appointments.length === 0) {
-    //             throw new Error('Терминот не е пронајден. Ве молиме изберете друг термин.');
-    //         }
-            
-    //         const appointmentId = appointments[0].id;
-            
-    //         // Then, book the appointment
-    //         const bookResponse = await fetch(`/api/appointments/${appointmentId}/book/`, {
-    //             method: 'PUT',
-    //             headers: {
-    //                 'X-CSRFToken': csrfToken,
-    //                 'Content-Type': 'application/json',
-    //             },
-    //             body: JSON.stringify({
-    //                 service_id: serviceId
-    //             })
-    //         });
-            
-    //         if (!bookResponse.ok) {
-    //             const errorData = await bookResponse.json();
-    //             throw new Error(errorData.error || 'Грешка при закажување на терминот');
-    //         }
-            
-    //         // Success - redirect to confirmation page
-    //         alert('Терминот е успешно закажан!');
-    //         window.location.href = '/appointment-confirmation/';
-            
-    //     } catch (error) {
-    //         // Show error message
-    //         console.error('Booking error:', error);
-    //         alert(`Грешка: ${error.message}`);
-    //         confirmBtn.disabled = false;
-    //         confirmBtn.innerHTML = originalText;
-    //     }
-    // });
-
-    function checkElementExists(id) {
-        const element = document.getElementById(id);
-        if (!element) {
-            console.error(`Element with ID '${id}' not found`);
-            return false;
-        }
-        console.log(`Element '${id}':`, element);
-        return true;
-    }
-    
     // Form submission handler
     document.getElementById('appointmentForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        // Debug: Check if all required elements exist
-        const requiredElements = [
-            'form-doctor-id',
-            'form-department-id', 
-            'selected-service-id',
-            'selected-date',
-            'selected-time'
-        ];
+        const confirmBtn = document.getElementById('confirmBtn');
+        const originalText = confirmBtn.innerHTML;
         
-        for (const id of requiredElements) {
-            if (!checkElementExists(id)) {
-                alert(`Грешка: Недостасува задолжителна информација (${id}). Ве молиме освежете ја страницата и обидете се повторно.`);
-                return;
+        // Show loading state
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = `
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Закажување...
+        `;
+        
+        try {
+            // Get form values with null checks
+            const doctorIdElement = document.getElementById('form-doctor-id');
+            const departmentIdElement = document.getElementById('form-department-id');
+            const serviceIdElement = document.getElementById('selected-service-id');
+            const dateElement = document.getElementById('selected-date');
+            const timeElement = document.getElementById('selected-time');
+            const csrfElement = document.querySelector('[name=csrfmiddlewaretoken]');
+            
+            // Check if all required elements exist
+            if (!doctorIdElement || !departmentIdElement || !serviceIdElement || 
+                !dateElement || !timeElement || !csrfElement) {
+                throw new Error('Недостасуваат потребните информации за закажување.');
             }
+            
+            const doctorId = doctorIdElement.value;
+            const departmentId = departmentIdElement.value;
+            const serviceId = serviceIdElement.value;
+            const appointmentDate = dateElement.value;
+            const appointmentTime = timeElement.value;
+            const csrfToken = csrfElement.value;
+            
+            // Validate that all values are provided
+            if (!doctorId || !departmentId || !serviceId || !appointmentDate || !appointmentTime) {
+                throw new Error('Сите полиња се задолжителни. Ве молиме пополнете ги сите информации.');
+            }
+            
+            // Debug: log the values being sent
+            console.log('Sending:', {
+                doctorId, departmentId, serviceId, appointmentDate, appointmentTime
+            });
+            
+            // First, find the appointment ID
+            const findResponse = await fetch(`/api/appointments/find/?doctor_id=${doctorId}&date=${appointmentDate}&time=${appointmentTime}`);
+            
+            if (!findResponse.ok) {
+                throw new Error('Грешка при пронаоѓање на терминот');
+            }
+            
+            const appointments = await findResponse.json();
+            
+            if (!appointments || appointments.length === 0) {
+                throw new Error('Терминот не е пронајден. Ве молиме изберете друг термин.');
+            }
+            
+            const appointmentId = appointments[0].id;
+            
+            // Then, book the appointment
+            const bookResponse = await fetch(`/api/appointments/book/${appointmentId}/`, {
+                method: 'PUT',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    service_id: serviceId
+                })
+            });
+            
+            
+            if (!bookResponse.ok) {
+                const errorData = await bookResponse.json();
+                throw new Error(errorData.error || 'Грешка при закажување на терминот');
+            }
+            const pdfResponse = await fetch(`/api/appointments/${appointmentId}/send-document/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                }
+            });
+            
+            if (!pdfResponse.ok) {
+                console.warn('PDF sending failed, but appointment was booked successfully');
+                // Continue anyway since the appointment was booked
+            }
+            
+            // Success - redirect to confirmation page
+            alert('Терминот е успешно закажан!');
+            window.location.href = '/api/appointments/appointment-confirmation/';
+            
+        } catch (error) {
+            // Show error message
+            console.error('Booking error:', error);
+            alert(`Грешка: ${error.message}`);
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = originalText;
         }
+    });
+
+    // function checkElementExists(id) {
+    //     const element = document.getElementById(id);
+    //     if (!element) {
+    //         console.error(`Element with ID '${id}' not found`);
+    //         return false;
+    //     }
+    //     console.log(`Element '${id}':`, element);
+    //     return true;
+    // }
+    
+    // // Form submission handler
+    // document.getElementById('appointmentForm').addEventListener('submit', async function(e) {
+    //     e.preventDefault();
+        
+    //     // Debug: Check if all required elements exist
+    //     const requiredElements = [
+    //         'form-doctor-id',
+    //         'form-department-id', 
+    //         'selected-service-id',
+    //         'selected-date',
+    //         'selected-time'
+    //     ];
+        
+    //     for (const id of requiredElements) {
+    //         if (!checkElementExists(id)) {
+    //             alert(`Грешка: Недостасува задолжителна информација (${id}). Ве молиме освежете ја страницата и обидете се повторно.`);
+    //             return;
+    //         }
+    //     }
+    // });
         {% endif %}
     });
 </script>

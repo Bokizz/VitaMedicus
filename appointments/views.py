@@ -4,20 +4,21 @@ from django.conf import settings
 from .models import Appointment
 from .serializers import *
 from hospitals.models import *
+from accounts.models import User, Doctor
 from .utils.pdf_generator import generate_appointment_pdf
-import os
-import smtplib # dodaj smtp za emajl da prakjash
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email import encoders
 from rest_framework.response import Response
-from accounts.models import Doctor
-from hospitals.models import Service
-from accounts.models import User
+from rest_framework.views import APIView
 from rest_framework import generics, status
-from rest_framework.response import Response
 from django.utils import timezone
+from datetime import time, datetime, date, timedelta
+import logging
+import os
+import smtplib # dodaj smtp za emajl da prakjash
+
 
 def authentication_required(view_func):
     def wrapper(request, *args, **kwargs):
@@ -30,6 +31,9 @@ def authentication_required(view_func):
 def appointment_page(request):
     return render(request,"appointments/appointment.html")
 
+@authentication_required    
+def appointment_confirmation_page(request):
+    return render(request, "appointments/appointment_confirmation.html")
 
 def download_appointment_pdf(request, appointment_id): # permissions.isAuthenticated dodaj posle test
     try:
@@ -79,51 +83,140 @@ def send_document(request, appointment_id):
     return Response({"message": "PDF е испратен на вашата е-пошта успешно!"})
 
 
-class AvailableAppointmentsView(generics.ListAPIView):
+# class AvailableAppointmentsView(generics.ListAPIView):
+#     serializer_class = AppointmentSerializer
+#     # permission_classes = [IsAuthenticated] KOGA KJE DODADESH LOGIN SESSION
+
+#     def get_queryset(self):
+#         doctor_id = self.request.query_params.get("doctor")
+#         date = self.request.query_params.get("date")
+#         qs = Appointment.objects.filter(booked=False)
+
+#         if doctor_id:
+#             qs = qs.filter(doctor_id=doctor_id)
+#         if date:
+#             qs = qs.filter(date=date)
+
+#         return qs
+
+
+class FindAppointmentView(generics.ListAPIView):
     serializer_class = AppointmentSerializer
-    # permission_classes = [IsAuthenticated] KOGA KJE DODADESH LOGIN SESSION
-
+    
     def get_queryset(self):
-        doctor_id = self.request.query_params.get("doctor")
+        doctor_id = self.request.query_params.get("doctor_id")
         date = self.request.query_params.get("date")
-        qs = Appointment.objects.filter(booked=False)
+        time_range = self.request.query_params.get("time")
+        
+        if not all([doctor_id, date, time_range]):
+            return Appointment.objects.none()
+        
+        try:
+            # Parse time range (e.g., "08:00-08:30")
+            start_time_str = time_range.split('-')[0]
+            start_time = datetime.strptime(start_time_str, '%H:%M').time()
+            
+            # Parse date
+            date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+            
+            return Appointment.objects.filter(
+                doctor_id=doctor_id,
+                date=date_obj,
+                start_time=start_time,
+                booked=False
+            )
+        except (ValueError, IndexError):
+            return Appointment.objects.none()
 
-        if doctor_id:
-            qs = qs.filter(doctor_id=doctor_id)
-        if date:
-            qs = qs.filter(date=date)
-
-        return qs
 
 class BookAppointmentView(generics.UpdateAPIView):
     serializer_class = AppointmentSerializer
-    # permission_classes = [IsAuthenticated] KOGA KJE DODADESH LOGIN SESSION
-
     queryset = Appointment.objects.all()
-
+    
     def update(self, request, *args, **kwargs):
         appointment = self.get_object()
-        service_id = request.data.get("service")
-
+        service_id = request.data.get("service_id")
+        
         if appointment.booked:
             return Response({"error": "Веќе е букиран овој термин."},
                             status=status.HTTP_400_BAD_REQUEST)
-
+        
         try:
             service = Service.objects.get(id=service_id)
         except Service.DoesNotExist:
-            return Response({"error": "Invalid service ID."},
+            return Response({"error": "Невалиден сервис ID."},
                             status=status.HTTP_400_BAD_REQUEST)
-
-        # Check doctor actually offers this service
-        if not appointment.doctor.doctor_services.filter(service=service, approved=True, available=True).exists():
-            return Response({"error": "Докторот не го нуди овој сервис."},
-                            status=status.HTTP_400_BAD_REQUEST)
-
+        
+        
         appointment.patient = request.user
         appointment.service = service
         appointment.booked = True
         appointment.status = "pending"
         appointment.save()
-
+        
         return Response(AppointmentSerializer(appointment).data)
+
+
+logger = logging.getLogger(__name__)
+
+class AvailableTimeSlotsView(APIView):
+    def get(self, request):
+        try:
+            doctor_id = request.GET.get('doctor_id')
+            selected_date = request.GET.get('date')
+            
+            logger.info(f"Received request: doctor_id={doctor_id}, date={selected_date}")
+            
+            if not doctor_id or not selected_date:
+                return Response({
+                    "error": "Both doctor_id and date are required"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Parse the date
+            appointment_date = datetime.strptime(selected_date, '%Y-%m-%d').date()
+            
+            logger.info(f"Looking for appointments for doctor {doctor_id} on {appointment_date}")
+            
+            # Get available appointments for this doctor on this date
+            available_appointments = Appointment.objects.filter(
+                doctor_id=doctor_id,
+                date=appointment_date,
+                booked=False
+            ).order_by('start_time')
+            
+            logger.info(f"Found {available_appointments.count()} available appointments")
+            
+            # Format the response with time ranges
+            time_slots = []
+            for appointment in available_appointments:
+                # Skip if it's during break time (10:00-10:30)
+                if (appointment.start_time >= time(10, 0) and 
+                    appointment.start_time < time(10, 30)):
+                    logger.info(f"Skipping break time appointment: {appointment.start_time}")
+                    continue
+                
+                # Format as "HH:MM-HH:MM"
+                start_time_str = appointment.start_time.strftime('%H:%M')
+                end_time_str = appointment.end_time.strftime('%H:%M')
+                time_range = f"{start_time_str}-{end_time_str}"
+                
+                time_slots.append(time_range)
+            
+            logger.info(f"Returning {len(time_slots)} available time slots")
+            
+            return Response({
+                'date': selected_date,
+                'doctor_id': doctor_id,
+                'available_slots': time_slots
+            })
+            
+        except ValueError as e:
+            logger.error(f"ValueError: {str(e)}")
+            return Response({
+                "error": "Invalid date format. Use YYYY-MM-DD"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}", exc_info=True)
+            return Response({
+                "error": "Internal server error"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

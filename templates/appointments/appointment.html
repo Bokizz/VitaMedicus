@@ -16,7 +16,7 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h5 class="card-title mb-0">Изберете Клиника</h5>
+                                    <h5 class="card-title mb-0">Одберете Клиника</h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
@@ -50,7 +50,7 @@
                                 <!-- Service Selection -->
                                 <div class="card mb-3">
                                     <div class="card-header">
-                                        <h5 class="card-title mb-0">ОДБЕРЕТЕ ОДДЕЛЕНИЕ</h5>
+                                        <h5 class="card-title mb-0">Одделение</h5>
                                     </div>
                                     <div class="card-body">
                                         <select class="form-select" id="departmentSelect" disabled>
@@ -62,7 +62,7 @@
                                 <!-- Doctor Selection -->
                                 <div class="card">
                                     <div class="card-header">
-                                        <h5 class="card-title mb-0">ОДБЕРЕТЕ ДОКТОР</h5>
+                                        <h5 class="card-title mb-0">Доктор</h5>
                                     </div>
                                     <div class="card-body">
                                         <select class="form-select" id="doctorSelect" disabled>
@@ -78,7 +78,7 @@
                                     </div>
                                     <div class="card-body">
                                         <p><strong>Клиника:</strong> <span id="selectedHospital"></span></p>
-                                        <p><strong>Услуга:</strong> <span id="selectedDepartment"></span></p>
+                                        <p><strong>Одделение:</strong> <span id="selectedDepartment"></span></p>
                                         <p><strong>Доктор:</strong> <span id="selectedDoctor"></span></p>
                                         <button class="btn btn-primary w-100" id="continueBtn" disabled>Продолжете со закажувањето</button>
                                     </div>
@@ -264,7 +264,7 @@
 
     // Populate doctor dropdown with doctors
     function populateDoctorDropdown(doctors) {
-        doctorSelect.innerHTML = '<option value="">Изберете доктор...</option>';
+        doctorSelect.innerHTML = '<option value="">Одберете доктор...</option>';
         
         if (doctors.length === 0) {
             doctorSelect.innerHTML = '<option value="">Нема доктори во оваа клиника</option>';
