@@ -117,22 +117,38 @@ def reset_password_page(request):
 def home_page(request):
     from django.utils import timezone
     from datetime import date
-    appointments = Appointment.objects.filter(
-        patient=request.user,
-        booked=True,
-        date__gte=date.today()
-    ).exclude(
-        status='cancelled'
-    ).select_related(
-        'doctor', 
-        'doctor__user', 
-        'doctor__hospital', 
-        'service'
-    ).order_by('date', 'start_time')
-    context = {
-        'appointments': appointments,
-        'today': timezone.now().date()
-    }
+    if hasattr(request.user, 'doctor'):
+            # User is a doctor - show appointments where they are the doctor
+            appointments = Appointment.objects.filter(
+                doctor=request.user.doctor,
+                date__gte=timezone.now().date()
+            ).select_related(
+                'patient', 
+                'service', 
+                'hospital'
+            ).order_by('date', 'start_time')
+            
+            context = {
+                'appointments': appointments,
+                'is_doctor': True
+            }
+    else:
+        appointments = Appointment.objects.filter(
+            patient=request.user,
+            booked=True,
+            date__gte=date.today()
+        ).exclude(
+            status='cancelled'
+        ).select_related(
+            'doctor', 
+            'doctor__user', 
+            'doctor__hospital', 
+            'service'
+        ).order_by('date', 'start_time')
+        context = {
+            'appointments': appointments,
+            'today': timezone.now().date()
+        }
     return render(request, "home.html",context)
 
 

@@ -33,46 +33,116 @@
         <div class="col-lg-8 mx-auto">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Претстојни Термини</h4>
+                    {% if is_doctor %}
+                        <h4 class="mb-0">Закажани термини кај вас</h4>
+                    {% else %}
+                        <h4 class="mb-0">Претстојни Термини</h4>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     {% if appointments %}
                         <div class="appointments-list">
-                            {% for appointment in appointments %}
-                                <div class="appointment-card card mb-3" data-appointment-id="{{ appointment.id }}">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h5 class="card-title mb-1">{{ appointment.service.name }}</h5>
-                                                <p class="card-text mb-1">
-                                                    <strong>Доктор:</strong> Д-р {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}
-                                                </p>
-                                                <p class="card-text mb-1">
-                                                    <strong>Клиника:</strong> {{ appointment.hospital.name }}
-                                                </p>
-                                                <p class="card-text mb-1">
-                                                    <strong>Дата и време:</strong> {{ appointment.date }} {{ appointment.start_time|time:"H:i" }}-{{ appointment.end_time|time:"H:i" }}
-                                                </p>
-                                                <p class="card-text">
-                                                    <strong>Статус:</strong> 
-                                                    <span class="badge {% if appointment.status == 'pending' %}bg-warning{% elif appointment.status == 'confirmed' %}bg-success{% elif appointment.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
-                                                        {% if appointment.status == 'pending' %}Чекање на потврда
-                                                        {% elif appointment.status == 'confirmed' %}Потврдено
-                                                        {% elif appointment.status == 'cancelled' %}Откажано
-                                                        {% else %}{{ appointment.status }}{% endif %}
-                                                    </span>
-                                                </p>
-                                            </div>
-                                            <div class="text-end">
-                                                <button class="btn btn-outline-primary btn-sm me-2">Детали</button>
-                                                {% if appointment.status != 'cancelled' and appointment.can_cancel %}
-                                                <button class="btn btn-outline-danger btn-sm" data-appointment-id="{{ appointment.id }}">Откажи</button>
-                                                {% endif %}
+                            {% if is_doctor %}
+                                <!-- Doctor's view - shows patients who have appointments with them -->
+                                {% for appointment in appointments %}
+                                    <div class="appointment-card card mb-3" data-appointment-id="{{ appointment.id }}">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h5 class="card-title mb-1">{{ appointment.service.name }}</h5>
+                                                    <p class="card-text mb-1">
+                                                        <strong>Пациент:</strong> {{ appointment.patient.first_name }} {{ appointment.patient.last_name }}
+                                                    </p>
+                                                    <p class="card-text mb-1">
+                                                        <strong>Телефон:</strong> {{ appointment.patient.phone_number }}
+                                                    </p>
+                                                    <p class="card-text mb-1">
+                                                        <strong>Клиника:</strong> {{ appointment.hospital.name }}
+                                                    </p>
+                                                    <p class="card-text mb-1">
+                                                        <strong>Дата и време:</strong> {{ appointment.date }} {{ appointment.start_time|time:"H:i" }}-{{ appointment.end_time|time:"H:i" }}
+                                                    </p>
+                                                    <p class="card-text">
+                                                        <strong>Статус:</strong> 
+                                                        <span class="badge {% if appointment.status == 'pending' %}bg-warning{% elif appointment.status == 'confirmed' %}bg-success{% elif appointment.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                            {% if appointment.status == 'pending' %}Чекање на потврда
+                                                            {% elif appointment.status == 'confirmed' %}Потврдено
+                                                            {% elif appointment.status == 'cancelled' %}Откажано
+                                                            {% else %}{{ appointment.status }}{% endif %}
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                                <div class="text-end">
+                                                    <button class="btn btn-outline-primary btn-sm me-2 view-patient-details" 
+                                                            data-patient-id="{{ appointment.patient.id }}">
+                                                        Детали за пациентот
+                                                    </button>
+                                                    {% if appointment.status == 'pending' %}
+                                                    <button class="btn btn-outline-success btn-sm me-2 confirm-appointment" 
+                                                            data-appointment-id="{{ appointment.id }}">
+                                                        Потврди
+                                                    </button>
+                                                    <button class="btn btn-outline-danger btn-sm cancel-appointment" 
+                                                            data-appointment-id="{{ appointment.id }}">
+                                                        Откажи
+                                                    </button>
+                                                    {% elif appointment.status == 'confirmed' %}
+                                                    <button class="btn btn-outline-danger btn-sm cancel-appointment" 
+                                                            data-appointment-id="{{ appointment.id }}">
+                                                        Откажи
+                                                    </button>
+                                                    {% endif %}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            {% endfor %}
+                                {% empty %}
+                                    <div class="alert alert-info">
+                                        Немате закажани термини со пациенти.
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <!-- Patient's view - shows their appointments with doctors -->
+                                {% for appointment in appointments %}
+                                    <div class="appointment-card card mb-3" data-appointment-id="{{ appointment.id }}">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h5 class="card-title mb-1">{{ appointment.service.name }}</h5>
+                                                    <p class="card-text mb-1">
+                                                        <strong>Доктор:</strong> Д-р {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}
+                                                    </p>
+                                                    <p class="card-text mb-1">
+                                                        <strong>Клиника:</strong> {{ appointment.hospital.name }}
+                                                    </p>
+                                                    <p class="card-text mb-1">
+                                                        <strong>Дата и време:</strong> {{ appointment.date }} {{ appointment.start_time|time:"H:i" }}-{{ appointment.end_time|time:"H:i" }}
+                                                    </p>
+                                                    <p class="card-text">
+                                                        <strong>Статус:</strong> 
+                                                        <span class="badge {% if appointment.status == 'pending' %}bg-warning{% elif appointment.status == 'confirmed' %}bg-success{% elif appointment.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                            {% if appointment.status == 'pending' %}Чекање на потврда
+                                                            {% elif appointment.status == 'confirmed' %}Потврдено
+                                                            {% elif appointment.status == 'cancelled' %}Откажано
+                                                            {% else %}{{ appointment.status }}{% endif %}
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                                <div class="text-end">
+                                                    <button class="btn btn-outline-primary btn-sm me-2">Детали</button>
+                                                    {% if appointment.status != 'cancelled' and appointment.can_cancel %}
+                                                    <button class="btn btn-outline-danger btn-sm" data-appointment-id="{{ appointment.id }}">Откажи</button>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <div class="alert alert-info">
+                                        Немате закажани термини.
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
                         </div>
                     {% else %}
                         <div class="text-center py-4">
