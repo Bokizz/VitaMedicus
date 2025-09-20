@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from datetime import timedelta
-from datetime import datetime
+from datetime import datetime, date, time, timedelta
 
 class Appointment(models.Model):
     STATUS_CHOICES = (
@@ -69,7 +68,14 @@ class Appointment(models.Model):
         return self.is_recurring and self.status == "pending"
 
 class AppointmentComment(models.Model):
-    appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE, related_name='comments')
+    appointment_date = models.DateField()
+    appointment_time = models.TimeField()
     doctor = models.ForeignKey('accounts.Doctor', on_delete=models.CASCADE, related_name='doctor_comments')
+    patient = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='patient_comments_from_doctor')
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-created_at']
+        
+    def __str__(self):
+        return f"Забелешки од Д-р {self.doctor.user.get_full_name()} за {self.patient.get_full_name()} при закажан термин на датум {self.appointment_date}"

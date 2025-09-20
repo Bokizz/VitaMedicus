@@ -1,20 +1,26 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import FileResponse, Http404
 from django.conf import settings
-from .models import Appointment
+from django.utils import timezone
+from datetime import time, datetime, date, timedelta
+from django.contrib import messages
+from django.core.paginator import Paginator
+
+from .models import *
 from .serializers import *
 from hospitals.models import *
 from accounts.models import User, Doctor
 from .utils.pdf_generator import generate_appointment_pdf
+
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email import encoders
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics, status
-from django.utils import timezone
-from datetime import time, datetime, date, timedelta
+
 import logging
 import os
 import smtplib # dodaj smtp za emajl da prakjash
@@ -229,3 +235,99 @@ class AvailableTimeSlotsView(APIView):
             return Response({
                 "error": "Internal server error"
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def complete_appointment(request, appointment_id):
+    if not request.user.is_authenticated or not hasattr(request.user, 'doctor'):
+        messages.error(request, "Немате дозвола да ја завршите оваа назнака.")
+        return redirect('home')
+    
+    appointment = get_object_or_404(
+        Appointment, 
+        id=appointment_id, 
+        doctor=request.user.doctor
+    )
+    
+    # Mark appointment as finished
+    appointment.status = 'finished'
+    appointment.save()
+    
+    # Store appointment info in session for the comment page
+    request.session['completed_appointment'] = {
+        'id': appointment.id,
+        'date': appointment.date.isoformat(),
+        'time': appointment.start_time.isoformat(),
+        'patient_id': appointment.patient.id,
+        'patient_name': f"{appointment.patient.first_name} {appointment.patient.last_name}"
+    }
+    
+    return redirect('comment-appointment')
+
+def appointment_comment_page(request):
+    if not request.user.is_authenticated or not hasattr(request.user, 'doctor'):
+        messages.error(request, "Немате дозвола да коментирате.")
+        return redirect('home')
+    
+    # Get appointment info from session
+    appointment_info = request.session.get('completed_appointment')
+    if not appointment_info:
+        messages.error(request, "Нема завршена назнака за коментирање.")
+        return redirect('home')
+    
+    if request.method == 'POST':
+        comment_text = request.POST.get('comment', '').strip()
+        
+        if comment_text:
+            # Create the comment
+            AppointmentComment.objects.create(
+                appointment_date=appointment_info['date'],
+                appointment_time=appointment_info['time'],
+                doctor=request.user.doctor,
+                patient_id=appointment_info['patient_id'],
+                comment=comment_text
+            )
+            
+            # Clear the session
+            del request.session['completed_appointment']
+            
+            messages.success(request, "Коментарот е успешно зачуван.")
+            return redirect('home')
+        else:
+            messages.error(request, "Ве молам внесете коментар.")
+    
+    context = {
+        'patient_name': appointment_info.get('patient_name', ''),
+        'appointment_date': appointment_info.get('date', ''),
+        'appointment_time': appointment_info.get('time', ''),
+    }
+    
+    return render(request, 'appointments/appointment_comment.html', context)
+
+@authentication_required
+def appointments_history_page(request):
+    
+    comments = AppointmentComment.objects.filter(
+        patient=request.user
+    ).select_related('doctor', 'doctor__user').order_by('-created_at')
+    
+    # Add search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        comments = comments.filter(
+            Q(comment__icontains=search_query) |
+            Q(doctor__user__first_name__icontains=search_query) |
+            Q(doctor__user__last_name__icontains=search_query)
+        )
+    
+    # Add pagination
+    paginator = Paginator(comments, 10)  # Show 10 comments per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'comments': page_obj,
+        'page_obj': page_obj,
+        'search_query': search_query,
+    }
+    
+    return render(request, 'appointments/appointments_history.html', context)
