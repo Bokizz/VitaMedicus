@@ -121,6 +121,7 @@ def home_page(request):
             # User is a doctor - show appointments where they are the doctor
             appointments = Appointment.objects.filter(
                 doctor=request.user.doctor,
+                booked=True,
                 date__gte=timezone.now().date()
             ).select_related(
                 'patient', 
@@ -240,10 +241,8 @@ class LoginView(APIView):
 class LogoutView(APIView):
     def post(self,request):
         logout(request)
-        return Response(
-            {"message":"Успешно се одјавивте!"},
-            status=status.HTTP_200_OK
-            )
+
+        return redirect('/api/accounts/login/')
 
 class VerifyPhoneView(generics.GenericAPIView):
     permission_classes = [NotBlacklisted, permissions.AllowAny]# permissions.isAuthenticated dodaj posle test
