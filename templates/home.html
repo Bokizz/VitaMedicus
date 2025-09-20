@@ -51,10 +51,10 @@
                                                 <div>
                                                     <h5 class="card-title mb-1">{{ appointment.service.name }}</h5>
                                                     <p class="card-text mb-1">
-                                                        <strong>Пациент:</strong> {{ appointment.patient.first_name }} {{ appointment.patient.last_name }}
+                                                        <strong>Пациент:</strong> {{ appointment.patient.user.first_name }} {{ appointment.patient.user.last_name }}
                                                     </p>
                                                     <p class="card-text mb-1">
-                                                        <strong>Телефон:</strong> {{ appointment.patient.phone_number }}
+                                                        <strong>Телефон:</strong> {{ appointment.patient.user.phone_number }}
                                                     </p>
                                                     <p class="card-text mb-1">
                                                         <strong>Клиника:</strong> {{ appointment.hospital.name }}
@@ -91,6 +91,9 @@
                                                             data-appointment-id="{{ appointment.id }}">
                                                         Откажи
                                                     </button>
+                                                    <a href="{% url 'complete-appointment' appointment.id %}" class="btn btn-outline-info btn-sm complete-appointment">
+                                                        Заврши
+                                                    </a>
                                                     {% endif %}
                                                 </div>
                                             </div>
@@ -152,7 +155,7 @@
                             </svg>
                             <h5 class="text-muted">Немате претстојни термини</h5>
                             <p class="text-muted">Закажете го вашиот прв термин и ќе се појави тука.</p>
-                            <a href="#" class="btn btn-primary">Закажете Термин</a>
+                            <a href="/api/appointments/appointment/" class="btn btn-primary">Закажете Термин</a>
                         </div>
                     {% endif %}
                 </div>
@@ -287,7 +290,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
-    
+
+    // Complete appointment button
+    document.querySelectorAll('.complete-appointment').forEach(button => {
+    button.addEventListener('click', function(e) {
+        if (!confirm('Дали сте сигурни дека сакате да го завршите терминот? Оваа акција не може да се врати.')) {
+            e.preventDefault();
+        }
+        });
+    });
     // Add appointment IDs to cancel buttons
     document.querySelectorAll('.appointment-card').forEach((card, index) => {
         const cancelButton = card.querySelector('.btn-outline-danger');
