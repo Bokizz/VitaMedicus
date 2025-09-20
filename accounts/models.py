@@ -44,7 +44,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     share_info = models.BooleanField(default = False)
     
     is_blacklisted = models.BooleanField(default = False)
-    date_joined = models.DateTimeField(default=timezone.now())
+    date_joined = models.DateTimeField(default=timezone.now)
     
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = []
@@ -53,6 +53,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.phone_number
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}" 
     
 class PhoneVerification(models.Model):
     user = models.ForeignKey(User, on_delete = models.CASCADE)

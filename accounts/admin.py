@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import User, Doctor
 from hospitals.models import *
-from appointments.models import Appointment
+from appointments.models import *
 from ratings.models import *
 from subscriptions.models import Subscription
 from django.utils.html import format_html
@@ -212,6 +212,19 @@ class AppointmentAdmin(admin.ModelAdmin):
 class RatingDetailInline(admin.TabularInline):
     model = RatingDetail
     extra = 1
+
+@admin.register(AppointmentComment)
+class AppointmentCommentAdmin(admin.ModelAdmin):
+    list_display = ("id",
+    "patient",
+    "appointment_date",
+    "appointment_time",
+    "doctor",
+    "comment",
+    "created_at")
+    search_fields = ("patient__id",
+    "doctor__id",
+    "appointment_date")
 
 @admin.register(Rating)
 class RatingAdmin(admin.ModelAdmin):
