@@ -55,6 +55,8 @@ def generate_daily_slots():
                 ))
 
             current += slot_length
+        count = slots.count()
 
         # Bulk create slots (skip existing duplicates)
         Appointment.objects.bulk_create(slots, ignore_conflicts=True)
+        return f"{count} new appointments created."
