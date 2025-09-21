@@ -40,12 +40,43 @@
         }
         
         /* Alternatively, if you want sticky behavior instead of fixed */
-        .sticky-header {
-            position: sticky;
-            top: 0;
-            z-index: 1030;
+        /* Header styling */
+    .sticky-header .nav {
+        display: flex;
+        gap: 1.0rem; /* Space between nav items */
+    }
+    
+    .sticky-header .nav-item {
+        white-space: nowrap;
+    }
+    
+        /* Footer alignment */
+        @media (min-width: 768px) {
+            .text-start {
+                text-align: left !important;
+            }
+            .text-center {
+                text-align: center !important;
+            }
+            .text-end {
+                text-align: right !important;
+            }
         }
         
+        /* Ensure proper spacing on mobile */
+        @media (max-width: 767px) {
+            .sticky-header .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 1rem;
+            }
+            
+            .text-start,
+            .text-center,
+            .text-end {
+                text-align: center !important;
+            }
+        }
         .sticky-footer {
             position: sticky;
             bottom: 0;
@@ -83,7 +114,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="/api/appointments/appointment/" class="nav-link {% if request.path == '/api/appointments/appointment/' %}text-secondary{% else %}text-white{% endif %}">
+                        <a href="/api/appointments/book-appointment/" class="nav-link {% if request.path == '/api/appointments/book-appointment/' %}text-secondary{% else %}text-white{% endif %}">
                                 <svg class="bi d-block mx-auto mb-1" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                                     <path d="M8 7a.5.5 0 0 1 .5.5V9H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V10H6a.5.5 0 0 1 0-1h1.5V7.5A.5.5 0 0 1 8 7"/>
                                     <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
@@ -92,24 +123,44 @@
                             </a>
                         </li>
                         <li>
-                            <a href="/api/appointments/appointments-history/" class="nav-link text-white">
-                                <svg class="bi d-block mx-auto mb-1" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                                    <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053.918 3.995.78 5.323 1.508 7H.43c-2.128-5.697 4.165-8.83 7.394-5.857q.09.083.176.171a3 3 0 0 1 .极-.17c3.23-2.974 9.522.159 7.394 5.856h-1.078c.728-1.677.59-3.005.108-3.947C13.486.878 10.4.28 8.717 2.01zM2.212 10h1.315C4.593 11.183 6.05 12.458 8 13.795c1.949-1.337 3.407-2.612 4.473-3.795h1.315c-1.265 1.566-3.14 3.25-5.788 5-2.648-1.75-4.523-3.434-5.788-5"/>
-                                    <path d="M10.464 3.314a.5.5 0 0 0-.945.049L7.921 8.956 6.464 5.314a.5.5 0 0 0-.88-.091L3.732 8H.5a.5.5 0 0 0 0 1H4a.5.5 0 0 0 .416-.223l1.473-2.209 1.647 4.118a.5.5 0 0 0 .945-.049l1.598-5.593 1.457 3.642A.5.5 0 0 0 12 9h3.5a.5.5 0 0 0 0-1h-3.162z"/>
+                            <a href="/api/appointments/appointments-history/" class="nav-link {% if request.path == '/api/appointments/appointments-history/' %}text-secondary{% else %}text-white{% endif %}">
+                                <svg class="bi d-block mx-auto mb-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M9.5 0a.5.5 0 0 1 .5.5.5.5 0 0 0 .5.5.5.5 0 0 1 .5.5V2a.5.5 0 0 1-.5.5h-5A.5.5 0 0 1 5 2v-.5a.5.5 0 0 1 .5-.5.5.5 0 0 0 .5-.5.5.5 0 0 1 .5-.5z"/>
+                                    <path d="M3 2.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 0 0-1h-.5A1.5 1.5 0 0 0 2 2.5v12A1.5 1.5 0 0 0 3.5 16h9a1.5 1.5 0 0 0 1.5-1.5v-12A1.5 1.5 0 0 0 12.5 1H12a.5.5 0 0 0 0 1h.5a.5.5 0 0 1 .5.5v12a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5z"/>
+                                    <path d="M9.979 5.356a.5.5 0 0 0-.968.04L7.92 10.49l-.94-3.135a.5.5 0 0 0-.926-.08L4.69 10H4.5a.5.5 0 0 0 0 1H5a.5.5 0 0 0 .447-.276l.936-1.873 1.138 3.793a.5.5 0 0 0 .968-.04L9.58 7.51l.94 3.135A.5.5 0 0 0 11 11h.5a.5.5 0 0 0 0-1h-.128z"/>
                                 </svg>
                                 Историјат на Термини
                             </a>
                         </li>
+                        <li>
+                            <a href="/api/appointments/my-appointments/" class="nav-link {% if request.path == '/api/appointments/my-appointments/' %}text-secondary{% else %}text-white{% endif %}">
+                                <svg class="bi d-block mx-auto mb-1" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053.918 3.995.78 5.323 1.508 7H.43c-2.128-5.697 4.165-8.83 7.394-5.857q.09.083.176.171a3 3 0 0 1 .极-.17c3.23-2.974 9.522.159 7.394 5.856h-1.078c.728-1.677.59-3.005.108-3.947C13.486.878 10.4.28 8.717 2.01zM2.212 10h1.315C4.593 11.183 6.05 12.458 8 13.795c1.949-1.337 3.407-2.612 4.473-3.795h1.315c-1.265 1.566-3.14 3.25-5.788 5-2.648-1.75-4.523-3.434-5.788-5"/>
+                                    <path d="M10.464 3.314a.5.5 0 0 0-.945.049L7.921 8.956 6.464 5.314a.5.5 0 0 0-.88-.091L3.732 8H.5a.5.5 0 0 0 0 1H4a.5.5 0 0 0 .416-.223l1.473-2.209 1.647 4.118a.5.5 0 0 0 .945-.049l1.598-5.593 1.457 3.642A.5.5 0 0 0 12 9h3.5a.5.5 0 0 0 0-1h-3.162z"/>
+                                </svg>
+                                Мои Термини
+                            </a>
+                        </li>
                         {% if user.is_staff %}
                         <li>
-                            <a href="#" class="nav-link text-white">
+                            <a href="/api/appointments/doctor-schedule/" class="nav-link {% if request.path == '/api/appointments/doctor-schedule/' %}text-secondary{% else %}text-white{% endif %}">
                                 <svg class="bi d-block mx-auto mb-1" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                                     <path d="M14 0H2a2 2 0 0 0-2 2极12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM1 3.857C1 3.384 1.448 3 2 3h12c.552 0 1 .384 1 .857v10.286c0 .473-.448.857-1 .857H2c-.552 0-1-.384-1-.857z"/>
                                     <path d="M6.5 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
                                 </svg>
                                 Ваш Распоред
+                            </a>
                         </li>
                         {% endif %}
+                        <li>
+                            <a href="/api/accounts/profile/" class="nav-link {% if request.path == '/api/accounts/profile/' %}text-secondary{% else %}text-white{% endif %}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi d-block mx-auto mb-1" viewBox="0 0 16 16">
+                                    <path d="M6.5 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                    <path d="M4.5 0A2.5 2.5 0 0 0 2 2.5V14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2.5A2.5 2.5 0 0 0 11.5 0zM3 2.5A1.5 1.5 0 0 1 4.5 1h7A1.5 1.5 0 0 1 13 2.5v10.795a4.2 4.2 0 0 0-.776-.492C11.392 12.387 10.063 12 8 12s-3.392.387-4.224.803a4.2 4.2 0 0 0-.776.492z"/>
+                                </svg>
+                                Ваш Профил
+                            </a>
+                        </li>
                 </ul>
             </div>
         </div>
@@ -123,8 +174,8 @@
 <footer class="bg-dark text-white mt-5">
     <div class="container py-5">
         <div class="row">
-            <!-- Brand Info -->
-            <div class="col-lg-4 col-md-6 mb-4 mb-md-0">
+            <!-- Brand Info - Left aligned -->
+            <div class="col-lg-4 col-md-4 mb-4 mb-md-0 text-start">
                 <div class="d-flex align-items-center mb-3">
                     <img src="{% static 'images/vitamedicus_nobg.png' %}" alt="VitaMedicus" height="40" class="me-2">
                     <span class="fs-5 fw-bold">VitaMedicus</span>
@@ -132,15 +183,15 @@
                 <p class="mb-0">Вашиот партнер за здравствена нега. Обезбедуваме квалитетни услуги со фокус на вашите потреби.</p>
             </div>
 
-            <!-- Leave Feedback -->
-            <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+            <!-- Leave Feedback - Center aligned -->
+            <div class="col-lg-4 col-md-4 mb-4 mb-md-0 text-center">
                 <h5 class="text-uppercase mb-3">Оставете мислење</h5>
                 <p class="mb-3">Вашето мислење ни е важно! Споделете ги вашите искуства со нашите услуги.</p>
                 <a href="#" class="btn btn-outline-light btn-sm">Оставете мислење</a>
             </div>
 
-            <!-- Contact Info -->
-            <div class="col-lg-3 col-md-6">
+            <!-- Contact Info - Right aligned -->
+            <div class="col-lg-4 col-md-4 text-end">
                 <h5 class="text-uppercase mb-3">Контактирајте не</h5>
                 <ul class="list-unstyled">
                     <li class="mb-2">
