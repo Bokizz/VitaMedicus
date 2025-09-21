@@ -19,4 +19,6 @@ urlpatterns = [
     path('appointment-confirmation/', appointment_confirmation_page, name='appointment-confirmation'),
 
     path('my-appointments/', my_appointments_page, name='my-appointments'),
+
+    path('doctor-schedule/', doctor_schedule_page, name='doctor-shcedule'),
 ]

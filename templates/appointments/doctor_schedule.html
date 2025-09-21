@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <h2 class="mb-0">Мој Распоред</h2>
+                <div class="d-flex align-items-center gap-3 mt-2 mt-md-0">
+                    <span class="text-muted">{{ week_range }}</span>
+                    <!-- Week Selection Dropdown -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle" type="button" id="weekDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            Избери недела
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="weekDropdown">
+                            {% for week in week_options %}
+                            <li>
+                                <a class="dropdown-item {% if week.selected %}active{% endif %}" 
+                                   href="?week={{ week.value }}">
+                                    {{ week.label }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Days Navigation -->
+        <div class="col-lg-4 mb-5 mb-lg-0">
+            <div class="nav nav-pills flex-column" id="scheduleTab" role="tablist">
+                {% for day in schedule_list %}
+                <button class="nav-link px-4 text-start mb-3 {% if forloop.first %}active{% endif %}" 
+                        id="{{ day.tab_id }}-tab" data-bs-toggle="tab" data-bs-target="#{{ day.tab_id }}" 
+                        type="button" role="tab" aria-controls="{{ day.tab_id }}" 
+                        aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+                    <span class="d-block fs-5 fw-bold">{{ day.day_name }}</span>
+                    <span class="small {% if day.is_today %}text-primary fw-bold{% else %}text-muted{% endif %}">
+                        {{ day.display_date }}
+                        {% if day.is_today %}(Денес){% endif %}
+                    </span>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Schedule Content -->
+        <div class="col-lg-8">
+            <div class="tab-content" id="scheduleTabContent">
+                {% for day in schedule_list %}
+                <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" 
+                     id="{{ day.tab_id }}" role="tabpanel" aria-labelledby="{{ day.tab_id }}-tab">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0">Распоред за {{ day.day_name }}, {{ day.date|date:"d.m.Y" }}</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% for slot in day.appointments %}
+                                {% with appointment=slot.appointment %}
+                                <div class="list-group-item d-flex flex-column flex-md-row py-3 {% if appointment %}border-start border-3 border-{% if appointment.status == 'confirmed' %}success{% elif appointment.status == 'pending' %}warning{% elif appointment.status == 'cancelled' %}danger{% elif appointment.status == 'finished' %}info{% else %}secondary{% endif %}{% endif %}">
+                                    <span class="flex-shrink-0 me-md-4 d-block mb-2 mb-md-0 small text-muted" style="width: 100px;">
+                                        {{ slot.time_slot }}
+                                    </span>
+                                    <div class="flex-grow-1 ps-md-4">
+                                        {% if appointment %}
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <h6 class="mb-1">
+                                                        {% if appointment.service %}
+                                                            {{ appointment.service.name }}
+                                                        {% else %}
+                                                            [Нема услуга]
+                                                        {% endif %}
+                                                    </h6>
+                                                    <p class="mb-1 small">
+                                                        <strong>Статус:</strong> 
+                                                        <span class="badge bg-{% if appointment.status == 'confirmed' %}success{% elif appointment.status == 'pending' %}warning{% elif appointment.status == 'cancelled' %}danger{% elif appointment.status == 'finished' %}info{% else %}secondary{% endif %}">
+                                                            {% if appointment.status == 'pending' %}Чекање на потврда
+                                                            {% elif appointment.status == 'confirmed' %}Потврдено
+                                                            {% elif appointment.status == 'cancelled' %}Откажано
+                                                            {% elif appointment.status == 'finished' %}Завршено
+                                                            {% else %}{{ appointment.status }}{% endif %}
+                                                        </span>
+                                                    </p>
+                                                    {% if appointment.patient %}
+                                                    <p class="mb-1 small">
+                                                        <strong>Пациент:</strong> 
+                                                        {{ appointment.patient.first_name }} {{ appointment.patient.last_name }}
+                                                    </p>
+                                                    {% if appointment.patient.phone_number %}
+                                                    <p class="mb-1 small">
+                                                        <strong>Телефон:</strong> {{ appointment.patient.phone_number }}
+                                                    </p>
+                                                    {% endif %}
+                                                    {% else %}
+                                                    <p class="mb-1 small text-muted">
+                                                        <strong>Пациент:</strong> Слободен термин
+                                                    </p>
+                                                    {% endif %}
+                                                    <p class="mb-0 small">
+                                                        <strong>Оддел:</strong> {{ appointment.department.name }}
+                                                    </p>
+                                                </div>
+                                                <div class="ms-3 text-end">
+                                                    <span class="badge bg-light text-dark small">
+                                                        {{ appointment.hospital.name }}
+                                                    </span>
+                                                    <br>
+                                                    <span class="badge bg-{% if appointment.booked %}primary{% else %}secondary{% endif %} small mt-1">
+                                                        {% if appointment.booked %}Закажан{% else %}Слободен{% endif %}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <div class="text-center text-muted py-2">
+                                                <i class="bi bi-calendar-x me-1"></i>
+                                                Нема закажан термин
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endwith %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body{
+        margin-top:20px;
+        background:#F0F8FF
+    }
+    .nav-pills .nav-link {
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    .nav-pills .nav-link.active {
+        background-color: #0d6efd;
+        color: white;
+    }
+    .nav-pills .nav-link:not(.active) {
+        background-color: #f8f9fa;
+        color: #6c757d;
+    }
+    .nav-pills .nav-link:not(.active):hover {
+        background-color: #e9ecef;
+        color: #495057;
+    }
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+        transition: background-color 0.2s ease;
+    }
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+    .list-group-item:first-child {
+        border-top: none;
+    }
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}

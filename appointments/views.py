@@ -39,6 +39,114 @@ def book_appointment_page(request):
     return render(request,"appointments/appointment.html")
 
 @authentication_required
+def doctor_schedule_page(request):
+    if not hasattr(request.user, 'doctor'):
+        return render(request, 'error.html', {'message': 'Само доктори може да го видат својот распоред.'})
+    
+    # Get selected week from request or default to current week
+    selected_week = request.GET.get('week', None)
+    if selected_week:
+        try:
+            selected_date = datetime.strptime(selected_week + '-1', '%Y-W%W-%w').date()
+        except ValueError:
+            selected_date = timezone.now().date()
+    else:
+        selected_date = timezone.now().date()
+    
+    # Calculate Monday of the selected week
+    start_of_week = selected_date - timedelta(days=selected_date.weekday())
+    week_dates = [start_of_week + timedelta(days=i) for i in range(5)]  # Monday to Friday
+    
+    # Generate week options for dropdown (current week and next 4 weeks)
+    current_week = timezone.now().date().isocalendar()[1]
+    current_year = timezone.now().year
+    week_options = []
+    
+    for week_offset in range(0, 5):  # Current week + next 4 weeks
+        week_num = current_week + week_offset
+        year = current_year
+        
+        # Handle year transition
+        if week_num > 52:
+            week_num -= 52
+            year += 1
+        
+        week_start = datetime.strptime(f'{year}-W{week_num}-1', '%G-W%V-%u').date()
+        week_end = week_start + timedelta(days=4)  # Friday
+        
+        week_options.append({
+            'value': f'{year}-W{week_num:02d}',
+            'label': f'{week_start.strftime("%d.%m")} - {week_end.strftime("%d.%m.%Y")}',
+            'selected': selected_date.isocalendar()[1] == week_num and selected_date.year == year
+        })
+    
+    # Get all appointments for this doctor for the selected week
+    appointments = Appointment.objects.filter(
+        doctor=request.user.doctor,
+        date__gte=start_of_week,
+        date__lte=start_of_week + timedelta(days=4)
+    ).select_related(
+        'patient', 
+        'service', 
+        'hospital',
+        'department'
+    ).order_by('date', 'start_time')
+    
+    # Create time slots from 08:00 to 16:00 (30-minute intervals)
+    time_slots = []
+    for hour in range(8, 16):  # 8 AM to 4 PM
+        for minute in [0, 30]:  # Every 30 minutes
+            time_str = f"{hour:02d}:{minute:02d}"
+            time_slots.append(time_str)
+            
+    # Organize appointments by date and time for easier template access
+    schedule_dict = {}
+    for date in week_dates:
+        schedule_dict[str(date)] = {}
+        for time_slot in time_slots:
+            schedule_dict[str(date)][time_slot] = None
+    
+    for appointment in appointments:
+        date_str = str(appointment.date)
+        time_str = appointment.start_time.strftime('%H:%M')
+        if date_str in schedule_dict and time_str in schedule_dict[date_str]:
+            schedule_dict[date_str][time_str] = appointment
+    
+    # Convert to list of tuples for easier template iteration
+    schedule_list = []
+    for date in week_dates:
+        date_str = str(date)
+        day_appointments = []
+        for time_slot in time_slots:
+            appointment = schedule_dict[date_str].get(time_slot)
+            day_appointments.append({
+                'time_slot': time_slot,
+                'appointment': appointment
+            })
+        schedule_list.append({
+            'date': date,
+            'date_str': date_str,
+            'appointments': day_appointments,
+            'display_date': date.strftime('%a, %b %d, %Y'),
+            'tab_id': f'day{len(schedule_list) + 1}',
+            'day_number': len(schedule_list) + 1,
+            'is_today': date == timezone.now().date(),
+            'day_name': ['Понеделник', 'Вторник', 'Среда', 'Четврток', 'Петок'][len(schedule_list)]
+        })
+    
+    context = {
+        'schedule_list': schedule_list,
+        'time_slots': time_slots,
+        'today': timezone.now().date(),
+        'week_options': week_options,
+        'selected_week': selected_date.strftime('%Y-W%W'),
+        'week_range': f"{start_of_week.strftime('%d.%m.%Y')} - {(start_of_week + timedelta(days=4)).strftime('%d.%m.%Y')}"
+    }
+    
+    return render(request, 'appointments/doctor_schedule.html', context)
+
+
+@authentication_required
 def my_appointments_page(request):
     status_filter = request.GET.get('status', '')
     search_query = request.GET.get('search', '')
