@@ -512,17 +512,17 @@
                 const errorData = await bookResponse.json();
                 throw new Error(errorData.error || 'Грешка при закажување на терминот');
             }
-            const pdfResponse = await fetch(`/api/appointments/${appointmentId}/send-document/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                }
-            });
+            // const pdfResponse = await fetch(`/api/appointments/${appointmentId}/send-document/`, { ODKOMENTIRAJ PRI PRODUKCIJA, za testiranje raboti da ne pushta mnogu mejlovi vaka
+            //     method: 'POST',
+            //     headers: {
+            //         'X-CSRFToken': csrfToken,
+            //     }
+            // });
             
-            if (!pdfResponse.ok) {
-                console.warn('PDF sending failed, but appointment was booked successfully');
-                // Continue anyway since the appointment was booked
-            }
+            // if (!pdfResponse.ok) {
+            //     console.warn('PDF sending failed, but appointment was booked successfully');
+            //     // Continue anyway since the appointment was booked
+            // }
             
             // Success - redirect to confirmation page
             alert('Терминот е успешно закажан!');
