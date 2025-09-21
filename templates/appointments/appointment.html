@@ -248,9 +248,9 @@
     function loadAllDoctors(hospitalId) {
         doctorSelect.innerHTML = '<option value="">Вчитување на доктори...</option>';
         doctorSelect.disabled = true;
-
+        const userId = {{ user.id }};
         // Use your existing hospital doctors endpoint
-        axios.get(`/api/hospitals/hospitals/${hospitalId}/doctors/`)
+        axios.get(`/api/hospitals/hospitals/${hospitalId}/doctors/${userId}/`)
             .then(response => {
                 allDoctors = response.data;
                 populateDoctorDropdown(allDoctors);

@@ -16,12 +16,13 @@ def service_page(request):
     department_id = request.GET.get('department_id') or request.session.get('department_id')
     if not doctor_id or not department_id:
         return Response("NEMA DOKTOR ID ILI DEPARTMENT ID")
-    
+
     doctor_id = int(doctor_id)
     department_id = int(department_id)
 
     # Store in session for potential future use
     request.session['doctor_id'] = doctor_id
+    
     request.session['department_id'] = department_id
     doctor = Doctor.objects.select_related(
             'user', 
@@ -32,6 +33,8 @@ def service_page(request):
             user__is_active=True,
             user__is_blacklisted=False
         ).first()
+    if doctor.user.id == request.user.id:
+        return Response("Не е дозволено кај самиот себе да си закажете термин докторе... :)")
     department = get_object_or_404(Department, id=department_id)    
     context = {
         'doctor': {
@@ -82,6 +85,8 @@ class HospitalDoctorsView(generics.ListAPIView):
             authorized=True,
             user__is_active=True,
             user__is_blacklisted=False
+        ).exclude(
+            user_id=self.kwargs['user_id']
         )
 
 class DepartmentListView(generics.ListAPIView):

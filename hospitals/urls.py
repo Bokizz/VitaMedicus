@@ -7,7 +7,7 @@ urlpatterns = [
 
     path("hospitals/", HospitalListView.as_view(), name="hospital-list"),
     path("hospitals/<int:hospital_id>/departments/", HospitalDepartmentsListView.as_view(), name="hospital-departments"),
-    path("hospitals/<int:hospital_id>/doctors/", HospitalDoctorsView.as_view(), name="hospital-doctors"),
+    path("hospitals/<int:hospital_id>/doctors/<int:user_id>/", HospitalDoctorsView.as_view(), name="hospital-doctors"),
 
     path("departments/", DepartmentListView.as_view(), name="department-list"),
     path("departments/<int:department_id>/doctors/", DepartmentDoctorsView.as_view(), name="department-doctors"),
