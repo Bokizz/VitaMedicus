@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <h4 class="mb-0">
+                                Мои термини
+                        </h4>
+                        <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0 gap-3">
+                            <!-- Filter form -->
+                            <form method="get" class="d-flex flex-wrap gap-3">
+                                <select name="status" class="form-select form-select-sm me-2 mb-2 mb-md-0" onchange="this.form.submit()">
+                                    {% for value, label in status_choices %}
+                                    <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <input type="text" name="search" class="form-control form-control-sm me-2 mb-2 mb-md-0" 
+                                       placeholder="Пребарај..." value="{{ search_query }}">
+                                <button type="submit" class="btn btn-outline-light btn-sm mb-2 mb-md-0">Филтрирај</button>
+                                <a href="{% url 'my-appointments' %}" class="btn btn-outline-light btn-sm mb-2 mb-md-0">Исчисти</a>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if appointments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Услуга</th>
+                                        <th>Доктор</th>
+                                        <th>Клиника</th>
+                                        <th>Дата и време</th>
+                                        <th>Статус</th>
+                                        <th>Акции</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appointment in appointments %}
+                                    <tr>
+                                        <td>{{ appointment.service.name }}</td>
+                                        <td>
+                                            Д-р {{ appointment.doctor.user.first_name }} 
+                                            {{ appointment.doctor.user.last_name }}
+                                        </td>
+                                        <td>{{ appointment.hospital.name }}</td>
+                                        <td>
+                                            {{ appointment.date }}<br>
+                                            <small class="text-muted">
+                                                {{ appointment.start_time|time:"H:i" }}-{{ appointment.end_time|time:"H:i" }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if appointment.status == 'pending' %}bg-warning{% elif appointment.status == 'confirmed' %}bg-success{% elif appointment.status == 'cancelled' %}bg-danger{% elif appointment.status == 'finished' %}bg-secondary{% else %}bg-secondary{% endif %}">
+                                                {% if appointment.status == 'pending' %}Чекање на потврда
+                                                {% elif appointment.status == 'confirmed' %}Потврдено
+                                                {% elif appointment.status == 'cancelled' %}Откажано
+                                                {% elif appointment.status == 'finished' %}Завршено
+                                                {% else %}{{ appointment.status }}{% endif %}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                {% if appointment.status == 'pending' %}
+                                                <button class="btn btn-outline-danger cancel-appointment" 
+                                                        data-appointment-id="{{ appointment.id }}">
+                                                    Откажи
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if page_obj.has_other_pages %}
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">&laquo;</span>
+                                </li>
+                                {% endif %}
+                                
+                                {% for i in page_obj.paginator.page_range %}
+                                {% if page_obj.number == i %}
+                                <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                                {% else %}
+                                <li class="page-item"><a class="page-link" href="?page={{ i }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">{{ i }}</a></li>
+                                {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">&raquo;</span>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="bi bi-calendar-x" style="font-size: 3rem; color: #6c757d;"></i>
+                            </div>
+                            <h5 class="text-muted">
+                                {% if search_query or status_filter %}
+                                Не се пронајдени термини според вашите критериуми
+                                {% else %}
+                                Немате закажани термини
+                                {% endif %}
+                            </h5>
+                            <p class="text-muted">
+                                {% if not is_doctor %}
+                                <a href="{% url 'book-appointment' %}" class="btn btn-primary mt-2">Закажи термин</a>
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Details Modal -->
+<div class="modal fade" id="appointmentDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Детали за терминот</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="appointmentDetailsContent">
+                <!-- Content will be loaded via AJAX -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Затвори</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    .badge {
+        font-size: 0.8rem;
+    }
+    .btn-group-sm > .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // View details button handler
+    document.querySelectorAll('.view-details').forEach(button => {
+        button.addEventListener('click', function() {
+            const appointmentId = this.dataset.appointmentId;
+            // Load appointment details via AJAX
+            fetch(`/api/appointments/${appointmentId}/details/`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('appointmentDetailsContent').innerHTML = data.html;
+                    const modal = new bootstrap.Modal(document.getElementById('appointmentDetailsModal'));
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Грешка при вчитување на деталите.');
+                });
+        });
+    });
+    
+    // Cancel appointment button handler
+    document.querySelectorAll('.cancel-appointment').forEach(button => {
+        button.addEventListener('click', function() {
+            const appointmentId = this.dataset.appointmentId;
+            if (confirm('Дали сте сигурни дека сакате да го откажете терминот?')) {
+                fetch(`/api/appointments/${appointmentId}/cancel/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Грешка при откажување: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Грешка при откажување на терминот.');
+                });
+            }
+        });
+    });
+    
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+{% endblock %}

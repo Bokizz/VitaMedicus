@@ -35,8 +35,60 @@ def authentication_required(view_func):
     return wrapper
 
 @authentication_required    
-def appointment_page(request):
+def book_appointment_page(request):
     return render(request,"appointments/appointment.html")
+
+@authentication_required
+def my_appointments_page(request):
+    status_filter = request.GET.get('status', '')
+    search_query = request.GET.get('search', '')
+    
+    
+    appointments = Appointment.objects.filter(
+        patient=request.user,
+        booked=True
+    )
+    
+    # Apply status filter
+    if status_filter:
+        appointments = appointments.filter(status=status_filter)
+    
+    # Apply search filter
+    if search_query:
+        appointments = appointments.filter(
+            Q(service__name__icontains=search_query) |
+            Q(hospital__name__icontains=search_query) |
+            Q(doctor__user__first_name__icontains=search_query) |
+            Q(doctor__user__last_name__icontains=search_query)
+        )
+    
+    # Order by date (most recent first)
+    appointments = appointments.select_related(
+        'service', 'hospital', 'doctor', 'doctor__user'
+    ).order_by('-date', '-start_time')
+    
+    # Add pagination
+    paginator = Paginator(appointments, 10)  # Show 10 appointments per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Status options for filter dropdown
+    status_choices = [
+        ('', 'Филтер по статус'),
+        ('pending', 'Чекање на потврда'),
+        ('confirmed', 'Потврдено'),
+        ('cancelled', 'Откажано'),
+        ('finished', 'Завршено'),
+    ]
+    
+    context = {
+        'appointments': page_obj,
+        'page_obj': page_obj,
+        'status_filter': status_filter,
+        'search_query': search_query,
+        'status_choices': status_choices,
+    }
+    return render(request, "appointments/my_appointments.html", context)    
 
 @authentication_required    
 def appointment_confirmation_page(request):
