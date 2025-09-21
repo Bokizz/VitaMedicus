@@ -13,6 +13,7 @@ urlpatterns = [
     path('comment/', appointment_comment_page, name = 'comment-appointment'),
 
     path('appointments-history/', appointments_history_page, name= 'appointments-history'),
+    path('patients-history/<int:patient_id>/', patients_history_page, name = 'patients-history'),
 
     path("book/<int:pk>/", BookAppointmentView.as_view(), name="book_appointment"),
     path('appointment-confirmation/', appointment_confirmation_page, name='appointment-confirmation'),

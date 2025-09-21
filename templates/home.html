@@ -45,16 +45,29 @@
                             {% if is_doctor %}
                                 <!-- Doctor's view - shows patients who have appointments with them -->
                                 {% for appointment in appointments %}
+                                    {% if not appointment.patient %}
+                                        <div class="alert alert-warning">
+                                            Debug: No user found for patient {{ appointment.patient.id }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="alert alert-info debug-info" style="font-size: 12px; padding: 5px; margin-bottom: 5px;">
+                                        <strong>DEBUG:</strong> 
+                                        ID: {{ appointment.id }} | 
+                                        Status: {{ appointment.status }} | 
+                                        Patient: {{ appointment.patient.id }} |
+                                        Share Info: {{ appointment.patient.share_info }} |
+                                        Has User: {% if appointment.patient %}Yes{% else %}No{% endif %}
+                                    </div>
                                     <div class="appointment-card card mb-3" data-appointment-id="{{ appointment.id }}">
                                         <div class="card-body">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div>
                                                     <h5 class="card-title mb-1">{{ appointment.service.name }}</h5>
                                                     <p class="card-text mb-1">
-                                                        <strong>Пациент:</strong> {{ appointment.patient.user.first_name }} {{ appointment.patient.user.last_name }}
+                                                        <strong>Пациент:</strong> {{ appointment.patient.first_name }} {{ appointment.patient.last_name }}
                                                     </p>
                                                     <p class="card-text mb-1">
-                                                        <strong>Телефон:</strong> {{ appointment.patient.user.phone_number }}
+                                                        <strong>Телефон:</strong> {{ appointment.patient.phone_number }}
                                                     </p>
                                                     <p class="card-text mb-1">
                                                         <strong>Клиника:</strong> {{ appointment.hospital.name }}
@@ -68,15 +81,17 @@
                                                             {% if appointment.status == 'pending' %}Чекање на потврда
                                                             {% elif appointment.status == 'confirmed' %}Потврдено
                                                             {% elif appointment.status == 'cancelled' %}Откажано
+                                                            {% elif appointment.status == 'finished' %}Завршено
                                                             {% else %}{{ appointment.status }}{% endif %}
                                                         </span>
                                                     </p>
                                                 </div>
                                                 <div class="text-end">
-                                                    <button class="btn btn-outline-primary btn-sm me-2 view-patient-details" 
-                                                            data-patient-id="{{ appointment.patient.id }}">
-                                                        Детали за пациентот
-                                                    </button>
+                                                        {% if appointment.patient.share_info %}
+                                                            <a href="{% url 'patients-history' appointment.patient.id %}" class="btn btn-outline-secondary btn-sm me-2">
+                                                                Детали за пациентот
+                                                            </a>
+                                                        {% endif %}
                                                     {% if appointment.status == 'pending' %}
                                                     <button class="btn btn-outline-success btn-sm me-2 confirm-appointment" 
                                                             data-appointment-id="{{ appointment.id }}">
@@ -87,13 +102,13 @@
                                                         Откажи
                                                     </button>
                                                     {% elif appointment.status == 'confirmed' %}
+                                                    <button href="{% url 'complete-appointment' appointment.id %}" class="btn btn-outline-primary btn-sm me-2 complete-appointment">
+                                                        Заврши
+                                                    </button>
                                                     <button class="btn btn-outline-danger btn-sm cancel-appointment" 
                                                             data-appointment-id="{{ appointment.id }}">
                                                         Откажи
                                                     </button>
-                                                    <a href="{% url 'complete-appointment' appointment.id %}" class="btn btn-outline-info btn-sm complete-appointment">
-                                                        Заврши
-                                                    </a>
                                                     {% endif %}
                                                 </div>
                                             </div>
@@ -127,12 +142,12 @@
                                                             {% if appointment.status == 'pending' %}Чекање на потврда
                                                             {% elif appointment.status == 'confirmed' %}Потврдено
                                                             {% elif appointment.status == 'cancelled' %}Откажано
+                                                            {% elif appointment.status == 'finished' %}Завршено
                                                             {% else %}{{ appointment.status }}{% endif %}
                                                         </span>
                                                     </p>
                                                 </div>
                                                 <div class="text-end">
-                                                    <button class="btn btn-outline-primary btn-sm me-2">Детали</button>
                                                     {% if appointment.status != 'cancelled' and appointment.can_cancel %}
                                                     <button class="btn btn-outline-danger btn-sm" data-appointment-id="{{ appointment.id }}">Откажи</button>
                                                     {% endif %}
@@ -212,6 +227,12 @@
     .appointment-card {
         border-left: 4px solid #007bff;
         transition: transform 0.2s;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    .appointment-card[data-appointment-patient-share-info="true"] {
+        border-left: 4px solid green !important;
     }
     
     .appointment-card:hover {

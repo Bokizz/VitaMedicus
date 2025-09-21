@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <h4 class="mb-0">Историјат на термини за пациентот {{ patient.first_name }} {{ patient.last_name }}</h4>
+                        <form method="get" class="d-flex mt-2 mt-md-0">
+                            <input type="text" name="search" class="form-control form-control-sm me-2" 
+                                   placeholder="Пребарај коментари..." value="{{ search_query }}">
+                            <button type="submit" class="btn btn-light btn-sm">Пребарај</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if comments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Дата на термин</th>
+                                        <th>Време на термин</th>
+                                        <th>Доктор</th>
+                                        <th>Коментар</th>
+                                        <th>Дата на коментар</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for comment in comments %}
+                                    <tr>
+                                        <td>{{ comment.appointment_date }}</td>
+                                        <td>{{ comment.appointment_time|time:"H:i" }}</td>
+                                        <td>
+                                            <strong>Д-р {{ comment.doctor.user.first_name }} {{ comment.doctor.user.last_name }}</strong>
+                                        </td>
+                                        <td>
+                                            <div class="comment-text">
+                                                {{ comment.comment }}
+                                            </div>
+                                        </td>
+                                        <td>{{ comment.created_at|date:"d.m.Y H:i" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if comments.has_other_pages %}
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center">
+                                {% if comments.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ comments.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">&laquo;</span>
+                                </li>
+                                {% endif %}
+                                
+                                {% for i in comments.paginator.page_range %}
+                                {% if comments.number == i %}
+                                <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                                {% else %}
+                                <li class="page-item"><a class="page-link" href="?page={{ i }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ i }}</a></li>
+                                {% endif %}
+                                {% endfor %}
+                                
+                                {% if comments.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ comments.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">&raquo;</span>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="bi bi-chat-left-text" style="font-size: 3rem; color: #6c757d;"></i>
+                            </div>
+                            <h5 class="text-muted">Нема коментари за термините на пациентот</h5>
+                            <p class="text-muted">
+                                {% if search_query %}
+                                Не се пронајдени коментари за пребарувањето "{{ search_query }}"
+                                {% else %}
+                                Пациентот сè уште нема завршени термини со коментари.
+                                {% endif %}
+                            </p>
+                            {% if search_query %}
+                            <a href="{% url 'patients-history' patient.id %}" class="btn btn-primary btn-sm">Исчисти пребарување</a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    .comment-text {
+        max-width: 300px;
+        word-wrap: break-word;
+    }
+    .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .page-link {
+        color: #007bff;
+    }
+</style>
+{% endblock %}

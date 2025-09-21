@@ -5,6 +5,7 @@ from django.utils import timezone
 from datetime import time, datetime, date, timedelta
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 from .models import *
 from .serializers import *
@@ -331,3 +332,42 @@ def appointments_history_page(request):
     }
     
     return render(request, 'appointments/appointments_history.html', context)
+
+@authentication_required
+def patients_history_page(request,patient_id):
+    patient = get_object_or_404(User, id=patient_id)
+    
+    # Check if the current user is a doctor
+    if not hasattr(request.user, 'doctor'):
+        return redirect('home')
+    
+    if not patient.share_info:
+        return redirect('home')
+
+    # Filter comments for this specific patient
+    comments = AppointmentComment.objects.filter(
+        patient=patient  # Filter by the target patient, not the logged-in user
+    ).select_related('doctor', 'doctor__user').order_by('-created_at')
+    
+    # Add search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        comments = comments.filter(
+            Q(comment__icontains=search_query) |
+            Q(doctor__user__first_name__icontains=search_query) |
+            Q(doctor__user__last_name__icontains=search_query)
+        )
+    
+    # Add pagination
+    paginator = Paginator(comments, 10)  # Show 10 comments per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'comments': page_obj,
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'patient': patient, 
+    }
+    
+    return render(request, 'appointments/doctors_patient_history.html', context)
