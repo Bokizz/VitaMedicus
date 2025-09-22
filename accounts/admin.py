@@ -208,10 +208,6 @@ class AppointmentAdmin(admin.ModelAdmin):
         "hospital__name",
         "department__name",
         "status")
-    
-class RatingDetailInline(admin.TabularInline):
-    model = RatingDetail
-    extra = 1
 
 @admin.register(AppointmentComment)
 class AppointmentCommentAdmin(admin.ModelAdmin):
@@ -226,23 +222,6 @@ class AppointmentCommentAdmin(admin.ModelAdmin):
     "doctor__id",
     "appointment_date")
 
-@admin.register(Rating)
-class RatingAdmin(admin.ModelAdmin):
-    list_display = ("id",
-    "appointment",
-    "created_at",)
-    search_fields = ("appointment_id",)
-    inlines = [RatingDetailInline]
-@admin.register(RatingDetail)
-class RatingDetailAdmin(admin.ModelAdmin):
-    list_display = ("id",
-    "rating",
-    "entity_type",
-    "entity_name",
-    "score",
-    "comment",)
-    list_filter = ("entity_type","score",)
-    search_fields = ("comment",)
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
