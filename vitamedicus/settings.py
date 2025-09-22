@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'hospitals',
     'appointments',
     'ratings',
-    'subscriptions',
 ]
 
 CELERY_BROKER_URL = "redis://localhost:6379/0"
