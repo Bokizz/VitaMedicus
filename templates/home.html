@@ -6,10 +6,14 @@
     <div class="px-3 py-2 border-bottom mb-3">
         <div class="container d-flex flex-wrap justify-content-between align-items-center">
             <!-- Search form on the left -->
-            <form class="col-12 col-lg-auto mb-2 mb-lg-0 me-lg-auto">
-                <input type="search" class="form-control" placeholder="Пребарај..." aria-label="Search">
+            <form class="col-12 col-lg-auto mb-2 mb-lg-0 me-lg-auto" method="GET" action="{% url 'search-ratings' %}">
+                <div class="input-group">
+                    <input type="search" name="q" class="form-control" placeholder="Пребарај доктори или клиники..." aria-label="Search">
+                    <button type="submit" class="btn btn-outline-light">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
             </form>
-
             <!-- User info and buttons on the right -->
             <div class="text-end d-flex align-items-center">
                 {% if user.is_authenticated %}

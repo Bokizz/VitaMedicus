@@ -5,6 +5,9 @@ from appointments.models import Appointment
 from .forms import RatingForm
 from django.db.models import Avg, Count
 from django.core.paginator import Paginator
+from accounts.models import Doctor
+from hospitals.models import Hospital 
+from django.db.models import Q
 
 def authentication_required(view_func):
     def wrapper(request, *args, **kwargs):
@@ -122,7 +125,7 @@ def search_ratings(request):
         hospitals = Hospital.objects.filter(
             Q(name__icontains=query) |
             Q(address__icontains=query) |
-            Q(city__icontains=query)
+            Q(town__icontains=query)
         )
         
         # Format results
@@ -142,7 +145,7 @@ def search_ratings(request):
                 'id': hospital.id,
                 'name': hospital.name,
                 'address': hospital.address,
-                'city': hospital.city,
+                'town': hospital.town,
                 'icon': 'bi-building'
             })
     
@@ -152,7 +155,7 @@ def search_ratings(request):
         'results_count': len(results)
     }
     
-    return render(request, 'search_ratings.html', context)
+    return render(request, 'ratings/search_ratings.html', context)
 
 @authentication_required
 def view_public_ratings(request, item_type, item_id):
@@ -197,11 +200,13 @@ def view_public_ratings(request, item_type, item_id):
                 'type': 'hospital',
                 'name': hospital.name,
                 'address': hospital.address,
-                'city': hospital.city,
+                'town': hospital.town,
             }
         }
     
     else:
         return redirect('home')
     
-    return render(request, 'public_ratings.html', context)
+    return render(request, 'ratings/public_ratings.html', context)
+
+    
