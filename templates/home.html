@@ -150,8 +150,8 @@
                                                 <div class="text-end">
                                                     {% if appointment.status != 'cancelled' and appointment.can_cancel %}
                                                     <button class="btn btn-outline-danger btn-sm" data-appointment-id="{{ appointment.id }}">Откажи</button>
-                                                    {% elif appointment.status == 'finished' and !appointment.is_rated %}
-                                                    <a href="{% url 'rate-appointment' appointment.id %}" class="btn btn-outline-info btn-sm me-2 complete-appointment">
+                                                    {% elif appointment.status == 'finished' and appointment.is_rated == False %}
+                                                    <a href="{% url 'rate' appointment.id %}" class="btn btn-outline-info btn-sm me-2">
                                                         Оставете рецензија
                                                     </a>
                                                     {% endif %}

@@ -222,6 +222,15 @@ class AppointmentCommentAdmin(admin.ModelAdmin):
     "doctor__id",
     "appointment_date")
 
+@admin.register(Rating)
+class Rating(admin.ModelAdmin):
+    list_display = ("id",
+    "doctor",
+    "hospital",
+    "doctor_rating",
+    "hospital_rating",
+    "comment",
+    "created_at")
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):

@@ -11,6 +11,7 @@ urlpatterns = [
     path('cancel/<int:appointment_id>/', cancel_appointment, name='cancel-appointment'),
     path('complete/<int:appointment_id>/',complete_appointment, name = 'complete-appointment'),
     path('comment/', appointment_comment_page, name = 'comment-appointment'),
+    path('rate/', rate_appointment_page, name = 'rate-appointment'),
 
     path('appointments-history/', appointments_history_page, name= 'appointments-history'),
     path('patients-history/<int:patient_id>/', patients_history_page, name = 'patients-history'),

@@ -2,6 +2,16 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Rating(models.Model):
+    doctor = models.ForeignKey(
+        'accounts.Doctor',
+        on_delete = models.CASCADE,
+        related_name = "doc_ratings"
+    )
+    hospital = models.ForeignKey(
+        'hospitals.Hospital',
+        on_delete = models.CASCADE,
+        related_name = "hospital_ratings"
+    )
     doctor_rating = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)],
         help_text="Rating from 1 to 5 stars"

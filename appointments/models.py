@@ -32,18 +32,12 @@ class Appointment(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     booked = models.BooleanField(default = False)
+    is_rated = models.BooleanField(default = False)
 
     status = models.CharField(max_length=20, 
                               choices=STATUS_CHOICES,
                               default='pending')
-    is_reccuring = models.BooleanField(default=False)
-    reccurence_pattern = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True,
-        help_text="Дневно, неделно, месечно (потребна е потврда од докторот)"
-    )
-
+    
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
