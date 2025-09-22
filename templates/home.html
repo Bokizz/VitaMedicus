@@ -102,9 +102,9 @@
                                                         Откажи
                                                     </button>
                                                     {% elif appointment.status == 'confirmed' %}
-                                                    <button href="{% url 'complete-appointment' appointment.id %}" class="btn btn-outline-primary btn-sm me-2 complete-appointment">
+                                                    <a href="{% url 'complete-appointment' appointment.id %}" class="btn btn-outline-primary btn-sm me-2 complete-appointment">
                                                         Заврши
-                                                    </button>
+                                                    </a>
                                                     <button class="btn btn-outline-danger btn-sm cancel-appointment" 
                                                             data-appointment-id="{{ appointment.id }}">
                                                         Откажи
@@ -150,6 +150,10 @@
                                                 <div class="text-end">
                                                     {% if appointment.status != 'cancelled' and appointment.can_cancel %}
                                                     <button class="btn btn-outline-danger btn-sm" data-appointment-id="{{ appointment.id }}">Откажи</button>
+                                                    {% elif appointment.status == 'finished' and !appointment.is_rated %}
+                                                    <a href="{% url 'rate-appointment' appointment.id %}" class="btn btn-outline-info btn-sm me-2 complete-appointment">
+                                                        Оставете рецензија
+                                                    </a>
                                                     {% endif %}
                                                 </div>
                                             </div>
@@ -266,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.disabled = true;
             
             // Send cancel request
-            fetch(`/api/appointments/${appointmentId}/cancel/`, {
+            fetch(`/api/appointments/cancel/${appointmentId}/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': '{{ csrf_token }}',

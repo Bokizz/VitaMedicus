@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, JsonResponse
 from django.conf import settings
 from django.utils import timezone
 from datetime import time, datetime, date, timedelta
@@ -37,6 +37,10 @@ def authentication_required(view_func):
 @authentication_required    
 def book_appointment_page(request):
     return render(request,"appointments/appointment.html")
+
+@authentication_required
+def rate_appointment_page(request):
+    return render(request,"")
 
 @authentication_required
 def doctor_schedule_page(request):
@@ -202,6 +206,7 @@ def my_appointments_page(request):
 def appointment_confirmation_page(request):
     return render(request, "appointments/appointment_confirmation.html")
 
+@authentication_required    
 def cancel_appointment(request, appointment_id):
     try:
         appointment = Appointment.objects.get(
@@ -217,7 +222,8 @@ def cancel_appointment(request, appointment_id):
                 'error': 'Терминот може да се откаже најмалку 24 часа пред почетокот.'
             })
         
-        appointment.status = 'cancelled'
+        appointment.status = 'pending'
+        appointment.patient = None
         appointment.booked = False
         appointment.save()
         
