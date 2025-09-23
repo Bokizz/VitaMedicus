@@ -16,4 +16,5 @@ urlpatterns = [
     path("services/", ServiceListView.as_view(), name="service-list"),
     path("service/",service_page, name="book-service"),
     path("service/<int:doctor_id>/services/", DoctorServicesView.as_view(), name="doctor-services"),
+    path('add-services/', add_services, name='add-services'),
 ]

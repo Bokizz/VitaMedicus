@@ -18,6 +18,7 @@ from datetime import timedelta
 from .serializers import *
 from .models import PhoneVerification,Doctor
 from appointments.models import Appointment
+from hospitals.models import DoctorDepartmentAssignment, DoctorServiceAssignment, Service
 from .permissions import NotBlacklisted
 import smtplib
 
@@ -30,7 +31,30 @@ def authentication_required(view_func):
 
 @authentication_required
 def profile_page(request):
-    return render(request,"accounts/profile.html")
+    context = {}
+    if hasattr(request.user, 'doctor'):
+        doctor = request.user.doctor
+        approved_departments = DoctorDepartmentAssignment.objects.filter(
+            doctor=doctor, 
+            approved=True
+        )
+        
+        # Get services from approved departments
+        available_services = Service.objects.filter(
+            department__in=[ad.department for ad in approved_departments]
+        ).exclude(
+            id__in=DoctorServiceAssignment.objects.filter(doctor=doctor).values('service')
+        )
+        
+        # Get doctor's service assignments
+        my_service_assignments = DoctorServiceAssignment.objects.filter(doctor=doctor)
+        
+        context.update({
+            'available_services': available_services,
+            'my_service_assignments': my_service_assignments,
+        })
+    
+    return render(request,"accounts/profile.html", context)
 
 @authentication_required
 @csrf_exempt

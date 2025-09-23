@@ -9,6 +9,9 @@
         <nav class="nav nav-borders">
             <a class="nav-link active " href="#" id="profile-tab">Профил</a>
             <a class="nav-link ms-0" href="#" id="security-tab">Безбедност</a>
+            {% if request.user.is_staff %}
+            <a class="nav-link ms-0" href="#" id="services-tab">Додај Услуги</a>
+            {% endif %}
         </nav>
         <hr class="mt-0 mb-4">
          <div id="profile-section">
@@ -117,6 +120,53 @@
                 </div>
             </div>
         </div>
+        {% if request.user.is_staff %}
+        <div id="services-section" style="display: none;">
+            <div class="row">
+                <div class="col-xl-8">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <span>Додај Услуги</span>
+                        </div>
+                        <div class="card-body">
+                            <form id="services-form" method="POST" action="{% url 'add-services' %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label class="small mb-1" for="serviceSelect">Избери услуги од вашиот оддел</label>
+                                    <select class="form-control" id="serviceSelect" name="services" multiple size="5">
+                                        {% for service in available_services %}
+                                        <option value="{{ service.id }}">{{ service.name }}</option>
+                                        {% empty %}
+                                        <option disabled>Нема достапни услуги за вашиот оддел</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">Држете Ctrl копчето за да изберете повеќе услуги.</div>
+                                </div>
+                                <button class="btn btn-primary" type="submit">Додај избрани услуги</button>
+                            </form>
+                            
+                            <!-- List of already requested services -->
+                            <div class="mt-4">
+                                <h5>Веќе додадени услуги</h5>
+                                <ul class="list-group">
+                                    {% for assignment in my_service_assignments %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        {{ assignment.service.name }}
+                                        <span class="badge {% if assignment.approved %}bg-success{% else %}bg-warning{% endif %} rounded-pill">
+                                            {% if assignment.approved %}Одобрена{% else %}Чека одобрување{% endif %}
+                                        </span>
+                                    </li>
+                                    {% empty %}
+                                    <li class="list-group-item">Сеуште немате додадено услуги.</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </main>
 
@@ -188,6 +238,7 @@
     .main-content {
         flex: 1;
     }
+    
 </style>
 
 <script>
@@ -197,23 +248,36 @@ document.addEventListener('DOMContentLoaded', function() {
     const profileForm = document.getElementById('profile-form');
     const inputs = profileForm.querySelectorAll('input');
     let isEditing = false;
+    
+    // Tab management
     const profileTab = document.getElementById('profile-tab');
     const securityTab = document.getElementById('security-tab');
     const profileSection = document.getElementById('profile-section');
     const securitySection = document.getElementById('security-section');
     
-    // Initially hide profile section and show security section
+    // Add services tab if it exists (for doctors)
+    const servicesTab = document.getElementById('services-tab');
+    const servicesSection = document.getElementById('services-section');
+    
+    // Initially show only profile section
     profileSection.style.display = 'block';
     securitySection.style.display = 'none';
+    if (servicesSection) servicesSection.style.display = 'none';
+    
     profileTab.classList.add('active');
     securityTab.classList.remove('active');
+    if (servicesTab) servicesTab.classList.remove('active');
 
+    // Profile tab click
     profileTab.addEventListener('click', function(e) {
         e.preventDefault();
         profileSection.style.display = 'block';
         securitySection.style.display = 'none';
+        if (servicesSection) servicesSection.style.display = 'none';
+        
         profileTab.classList.add('active');
         securityTab.classList.remove('active');
+        if (servicesTab) servicesTab.classList.remove('active');
     });
     
     // Security tab click
@@ -221,9 +285,26 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         profileSection.style.display = 'none';
         securitySection.style.display = 'block';
+        if (servicesSection) servicesSection.style.display = 'none';
+        
         profileTab.classList.remove('active');
         securityTab.classList.add('active');
+        if (servicesTab) servicesTab.classList.remove('active');
     });
+    
+    // Services tab click (if exists) - FIXED: Properly closed this block
+    if (servicesTab) {
+        servicesTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            profileSection.style.display = 'none';
+            securitySection.style.display = 'none';
+            servicesSection.style.display = 'block';
+            
+            profileTab.classList.remove('active');
+            securityTab.classList.remove('active');
+            servicesTab.classList.add('active');
+        });
+    } // This closing brace was missing
 
     // Toggle edit mode
     editToggleBtn.addEventListener('click', function() {
@@ -311,6 +392,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);
     }
+    
     const editSecurityBtn = document.getElementById('edit-security-btn');
     const saveSecurityBtn = document.getElementById('save-security-btn');
     const securityForm = document.getElementById('security-form');
@@ -410,11 +492,52 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    
     // Phone number validation function
     function isValidPhoneNumber(phone) {
         const re = /^[+]?[0-9]{9,15}$/;
         return re.test(phone);
+    }
+    
+    // Services form handling
+    const servicesForm = document.getElementById('services-form');
+    if (servicesForm) {
+        servicesForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const selectedServices = Array.from(document.getElementById('serviceSelect').selectedOptions)
+                .map(option => option.value);
+            
+            if (selectedServices.length === 0) {
+                alert('Изберете барем една услуга!');
+                return;
+            }
+            
+            // Submit form via AJAX
+            const formData = new FormData(this);
+            formData.append('selected_services', JSON.stringify(selectedServices));
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Услугите се успешно додадени! Чекајте на одобрување.');
+                    // Reload the page to show updated list
+                    location.reload();
+                } else {
+                    alert('Грешка при додавање на услуги: ' + (data.message || 'Обидете се повторно.'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Настана грешка. Обидете се повторно.');
+            });
+        });
     }
 });
 </script>

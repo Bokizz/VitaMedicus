@@ -7,6 +7,7 @@ from accounts.models import Doctor
 from rest_framework.response import Response
 from rest_framework import status, permissions, generics
 from rest_framework.views import APIView
+import json
 
 
 def service_page(request):
@@ -192,3 +193,29 @@ class DoctorServicesView(APIView):
             return Response({
                 "error": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+def add_services(request):
+    if request.method == 'POST' and hasattr(request.user, 'doctor'):
+        doctor = request.user.doctor
+        selected_services = json.loads(request.POST.get('selected_services', '[]'))
+        
+        for service_id in selected_services:
+            try:
+                service = Service.objects.get(id=service_id)
+                # Check if doctor is approved for the service's department
+                if DoctorDepartmentAssignment.objects.filter(
+                    doctor=doctor, 
+                    department=service.department, 
+                    approved=True
+                ).exists():
+                    DoctorServiceAssignment.objects.create(
+                        doctor=doctor,
+                        service=service,
+                        approved=False
+                    )
+            except Service.DoesNotExist:
+                pass
+        
+        return JsonResponse({'success': True})
+    
+    return JsonResponse({'success': False, 'message': 'Неуспешно додавање на услуги'})
