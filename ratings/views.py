@@ -201,6 +201,7 @@ def view_public_ratings(request, item_type, item_id):
                 'name': hospital.name,
                 'address': hospital.address,
                 'town': hospital.town,
+                'phone_number': hospital.phone_number
             }
         }
     

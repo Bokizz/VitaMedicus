@@ -210,7 +210,7 @@
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     
     // Load hospitals
-    axios.get("/api/hospitals/hospitals").then(res => {
+    axios.get("/api/hospitals/hospitals/").then(res => {
       res.data.forEach(h => {
         hospitalSelect.innerHTML += `<option value="${h.id}">${h.name}</option>`;
       });
@@ -222,7 +222,7 @@
       serviceSelect.innerHTML = `<option value="">Избери услуга</option>`;
       departmentSelect.disabled = !hospitalId;
       serviceSelect.disabled = true;
-    
+      
       if (hospitalId) {
         axios.get(`/api/hospitals/hospitals/${hospitalId}/departments/`).then(res => {
           res.data.forEach(d => {

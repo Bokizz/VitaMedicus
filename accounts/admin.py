@@ -25,7 +25,7 @@ class UserAdmin(BaseUserAdmin):
 
     fieldsets = (
         (None, {"fields": ("phone_number","password"),}),
-        ("Лични податоци",{"fields":("first_name","last_name","email","serial_number"),}),
+        ("Лични податоци",{"fields":("first_name","last_name","email"),}),
         ("Улога",{"fields":("role",)}),
         ("Permissions", {"fields":("is_active","is_staff","is_phone_verified","is_superuser","groups","user_permissions"),}),
         ("Important dates",{"fields":("last_login","date_joined"),}),

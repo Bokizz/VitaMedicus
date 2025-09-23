@@ -23,7 +23,7 @@
                         </div>
                         <h5 class="card-title">{{ profile.name }}</h5>
                         <p class="text-muted">Клиника</p>
-                        <p class="small text-muted">{{ profile.address }}, {{ profile.city }}, {{profile.phone_number}}</p>
+                        <p class="small text-muted">{{ profile.address }}, {{ profile.town }}, {{profile.phone_number}}</p>
                     {% endif %}
                     
                     <!-- Average Rating -->
@@ -72,10 +72,10 @@
         <!-- Right Content - Ratings and Comments -->
         <div class="col-md-9">
             <div class="card shadow-sm">
-                <div class="card-header bg-light">
+                <div class="card-header bg-primary text-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Оценки и коментари</h5>
-                        <a href="{% url 'search-ratings' %}" class="btn btn-outline-primary btn-sm">
+                        <a href="{% url 'search-ratings' %}" class="btn text-white bg-success btn-sm">
                             <i class="bi bi-arrow-left"></i> Назад кон пребарување
                         </a>
                     </div>

@@ -83,7 +83,7 @@ class DoctorDepartmentAssignment(models.Model):
     
         
 class Service(models.Model):
-    name = models.CharField(max_length = 50, unique = True)
+    name = models.CharField(max_length = 50)
     description = models.TextField(blank = True)
     department = models.ForeignKey(Department, 
                                    related_name = 'department_services', 

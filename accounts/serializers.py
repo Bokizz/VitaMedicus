@@ -22,6 +22,10 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
         label="Потврди лозинка",
         style={'input_type': 'password'}
     )
+    serial_number = serializers.CharField(
+        max_length=13,
+        label="Матичен број"
+    )
     class Meta:
         model = User
         fields = ['first_name', 
@@ -37,7 +41,6 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
             'last_name': {'label': 'Презиме'},
             'email' : {'label' : 'Електронска пошта'},
             'phone_number': {'label': 'Телефонски број'},
-            'serial_number': {'label': 'Матичен број'},
         }
     def validate(self, attrs):
         if attrs['password'] != attrs['confirm_password']:
@@ -46,17 +49,18 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('confirm_password')
-
+        serial_number = validated_data.pop('serial_number')
         user = User.objects.create_user(
             first_name = validated_data['first_name'],
             last_name = validated_data['last_name'],
             phone_number = validated_data['phone_number'],
             email = validated_data['email'],
-            serial_number = validated_data['serial_number'],
+            serial_number = serial_number,
             password = validated_data['password'],
             role = 'patient',
             is_active = True
         )
+        user.serial_number = serial_number
         user.set_password(validated_data['password'])
         user.save()
 
@@ -68,25 +72,24 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
             expires_at = timezone.now() + timedelta(minutes=15)
         )
         
-        # trgni komentari pri produkcija
-        # from_email = settings.EMAIL_HOST_USER
+        from_email = settings.EMAIL_HOST_USER
         # to_email = user.email  # za produkcija vaka
 
-        # to_email = settings.EMAIL_HOST_USER # za testiranje vaka 
+        to_email = settings.EMAIL_HOST_USER # za testiranje vaka 
 
             
-        # msg = MIMEText(f"Верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
-        # msg["Subject"] = "VitaMedicus - верификација на профил"
-        # msg["From"] = from_email
-        # msg["To"] = to_email
+        msg = MIMEText(f"Верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
+        msg["Subject"] = "VitaMedicus - верификација на профил"
+        msg["From"] = from_email
+        msg["To"] = to_email
 
-        # try:
-        #     with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
-        #         server.starttls()
-        #         server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
-        #         server.sendmail(msg["From"], [msg["To"]], msg.as_string())
-        # except Exception as e:
-        #     return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        try:
+            with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
+                server.starttls()
+                server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+                server.sendmail(msg["From"], [msg["To"]], msg.as_string())
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
         print(f"SMS CODE VERIFICATION: Верификациски код за корисникот со телефонски број {user.phone_number}:{code}") 
@@ -247,25 +250,24 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
             expires_at = timezone.now() + timedelta(minutes=15)
         )
         print(f"SMS CODE VERIFICATION: Верификациски код за корисникот со телефонски број {user.phone_number}:{code}") 
-        # trgni komentari pri produkcija
-        # from_email = settings.EMAIL_HOST_USER
+        from_email = settings.EMAIL_HOST_USER
         # to_email = user.email  # za produkcija vaka
 
-        # to_email = settings.EMAIL_HOST_USER # za testiranje vaka 
+        to_email = settings.EMAIL_HOST_USER # za testiranje vaka 
 
             
-        # msg = MIMEText(f"Верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
-        # msg["Subject"] = "VitaMedicus - верификација на профил"
-        # msg["From"] = from_email
-        # msg["To"] = to_email
+        msg = MIMEText(f"Верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
+        msg["Subject"] = "VitaMedicus - верификација на профил"
+        msg["From"] = from_email
+        msg["To"] = to_email
 
-        # try:
-        #     with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
-        #         server.starttls()
-        #         server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
-        #         server.sendmail(msg["From"], [msg["To"]], msg.as_string())
-        # except Exception as e:
-        #     return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        try:
+            with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
+                server.starttls()
+                server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+                server.sendmail(msg["From"], [msg["To"]], msg.as_string())
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
         doctor = Doctor.objects.create(

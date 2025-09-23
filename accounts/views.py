@@ -338,25 +338,24 @@ class ResendSMSCodeView(generics.GenericAPIView):
         code = get_random_string(6, allowed_chars='0123456789')
         expires_at = timezone.now() + timedelta(minutes=15)
         PhoneVerification.objects.create(user=user, code=code, expires_at=expires_at)
-        # trgni komentari pri produkcija
-        # from_email = settings.EMAIL_HOST_USER
-        # # to_email = user.email  # za produkcija vaka
+        from_email = settings.EMAIL_HOST_USER
+        # to_email = user.email  # za produkcija vaka
 
-        # to_email = settings.EMAIL_HOST_USER # za testiranje vaka 
+        to_email = settings.EMAIL_HOST_USER # za testiranje vaka 
 
             
-        # msg = MIMEText(f"Нов верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
-        # msg["Subject"] = "VitaMedicus - нов верификациски код"
-        # msg["From"] = from_email
-        # msg["To"] = to_email
+        msg = MIMEText(f"Нов верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
+        msg["Subject"] = "VitaMedicus - нов верификациски код"
+        msg["From"] = from_email
+        msg["To"] = to_email
 
-        # try:
-        #     with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
-        #         server.starttls()
-        #         server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
-        #         server.sendmail(msg["From"], [msg["To"]], msg.as_string())
-        # except Exception as e:
-        #     return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        try:
+            with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
+                server.starttls()
+                server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+                server.sendmail(msg["From"], [msg["To"]], msg.as_string())
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         print(f"SMS CODE VERIFICATION терминал: Верификациски код за корисникот со телефонски број {user.phone_number}:{code}")
 
         return Response(

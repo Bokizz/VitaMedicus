@@ -1,12 +1,11 @@
 from django.shortcuts import render,redirect
 from .models import *
-from rest_framework import generics
 from django.http import JsonResponse
 from .serializers import *
 from django.shortcuts import get_object_or_404
 from accounts.models import Doctor
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions, generics
 from rest_framework.views import APIView
 
 
@@ -72,9 +71,11 @@ def hospitals_map(request):
 class HospitalListView(generics.ListAPIView):
     queryset = Hospital.objects.all()
     serializer_class = HospitalSerializer
+    permission_classes = [permissions.AllowAny]
 
 class HospitalDoctorsView(generics.ListAPIView):
     serializer_class = DoctorSerializer
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         hospital_id = self.kwargs['hospital_id']
@@ -91,6 +92,7 @@ class HospitalDoctorsView(generics.ListAPIView):
 
 class DepartmentListView(generics.ListAPIView):
     serializer_class = DepartmentSerializer
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         hospital_id = self.request.query_params.get("hospital")
@@ -101,6 +103,7 @@ class DepartmentListView(generics.ListAPIView):
 
 class HospitalDepartmentsListView(generics.ListAPIView):
     serializer_class = DepartmentSerializer
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         hospital_id = self.kwargs.get("hospital_id")
@@ -108,6 +111,7 @@ class HospitalDepartmentsListView(generics.ListAPIView):
 
 class ServiceListView(generics.ListAPIView):
     serializer_class = ServiceSerializer
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         department_id = self.request.query_params.get("department")
@@ -119,6 +123,7 @@ class ServiceListView(generics.ListAPIView):
     
 class DepartmentServicesListView(generics.ListAPIView):
     serializer_class = ServiceSerializer
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         department_id = self.kwargs.get("department_id")
@@ -127,6 +132,7 @@ class DepartmentServicesListView(generics.ListAPIView):
 
 class DepartmentDoctorsView(generics.ListAPIView):
     serializer_class = DepartmentDoctorSerializer
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         department_id = self.request.query_params.get("department")
