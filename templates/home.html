@@ -54,14 +54,14 @@
                                             Debug: No user found for patient {{ appointment.patient.id }}
                                         </div>
                                     {% endif %}
-                                    <div class="alert alert-info debug-info" style="font-size: 12px; padding: 5px; margin-bottom: 5px;">
+                                    <!-- <div class="alert alert-info debug-info" style="font-size: 12px; padding: 5px; margin-bottom: 5px;">
                                         <strong>DEBUG:</strong> 
                                         ID: {{ appointment.id }} | 
                                         Status: {{ appointment.status }} | 
                                         Patient: {{ appointment.patient.id }} |
                                         Share Info: {{ appointment.patient.share_info }} |
                                         Has User: {% if appointment.patient %}Yes{% else %}No{% endif %}
-                                    </div>
+                                    </div> -->
                                     <div class="appointment-card card mb-3" data-appointment-id="{{ appointment.id }}">
                                         <div class="card-body">
                                             <div class="d-flex justify-content-between align-items-center">
