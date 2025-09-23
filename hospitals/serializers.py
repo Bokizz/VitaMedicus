@@ -68,18 +68,3 @@ class DoctorServicesSerializer(serializers.ModelSerializer):
             'available',
             'approved',
         ]
-        
-# class DoctorServicesSerializer(serializers.ModelSerializer):
-#     service_details = ServiceSerializer(source='service', read_only=True)
-#     duration = serializers.IntegerField(source='service.duration', read_only=True)
-#     price = serializers.DecimalField(source='service.price', max_digits=8, decimal_places=2, read_only=True)
-    
-#     class Meta:
-#         model = DoctorServiceAssignment
-#         fields = [
-#             'id',
-#             'service_details',
-#             'duration',
-#             'price',
-#             'available'
-#         ]
