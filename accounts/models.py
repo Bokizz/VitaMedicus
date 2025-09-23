@@ -3,8 +3,14 @@ from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,Permissi
 from django.core.validators import RegexValidator
 from django.conf import settings
 from django.utils import timezone
+from cryptography.fernet import Fernet
+import base64
 from datetime import timedelta
 import uuid
+
+def get_fernet():
+    key = settings.SECRET_KEY.encode()[:32].ljust(32, b'=')[:32]
+    return Fernet(base64.urlsafe_b64encode(key))
 
 class UserManager(BaseUserManager):
     def create_user(self, phone_number, password = None, **extra_fields):
@@ -34,7 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.CharField(max_length = 50, unique = True, blank = True, null = True)
     phone_regex = RegexValidator(regex = r'^\+3897\d{7}$', message = "Телефонскиот број треба да е од формат +3897XXXXXXX")
     phone_number = models.CharField(validators = [phone_regex],max_length = 12, unique = True)
-    serial_number = models.CharField(max_length = 13, unique = True)
+    _serial_number = models.TextField(unique=True, db_column='serial_number')
     role = models.CharField(max_length = 10, choices = ROLE_CHOICES)
     
     is_phone_verified = models.BooleanField(default = False)
@@ -50,7 +56,24 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
 
     objects = UserManager()
-
+    def get_serial_number(self):
+        if self._serial_number:
+            try:
+                f = get_fernet()
+                return f.decrypt(self._serial_number.encode()).decode()
+            except:
+                return None
+        return None
+    
+    def set_serial_number(self, value):
+        if value:
+            f = get_fernet()
+            encrypted = f.encrypt(value.encode())
+            self._serial_number = encrypted.decode()
+        else:
+            self._serial_number = None
+    
+    serial_number = property(get_serial_number, set_serial_number)
     def __str__(self):
         return self.phone_number
     def get_full_name(self):
@@ -86,6 +109,7 @@ class Doctor(models.Model):
         ("pediatrics", "Педијатрија"),
         ("orthopedics", "Ортопедија"),
         ("psychiatry", "Психијатрија"),
+        ("otorhinolaryngology", "Оториноларингологија"),
     ])
     #rating foreign key
 
