@@ -26,8 +26,16 @@ def rate_doctor_hospital_page(request, appointment_id):
         status='finished'  # Only allow rating for finished appointments
     )
     
+    try:
+        existing_rating = Rating.objects.get(
+            appointment_id = appointment_id,
+            doctor=appointment.doctor,
+            hospital=appointment.hospital,
+        )
+    except Rating.DoesNotExist:
+        existing_rating = None
 
-    form = RatingForm(request.POST or None)
+    form = RatingForm(request.POST or None, instance=existing_rating)
     if request.method == 'POST':
         form = RatingForm(request.POST, instance=existing_rating)
         if form.is_valid():
@@ -36,10 +44,12 @@ def rate_doctor_hospital_page(request, appointment_id):
             rating.doctor = appointment.doctor
             rating.hospital = appointment.hospital
             rating.is_anonymous = True  # Always anonymous
-            
+            rating.appointment_id = appointment_id
             rating.save()
             
             messages.success(request, "Вашата оценка е успешно зачувана. Ви благодариме!")
+            appointment.is_rated = True
+            appointment.save()
             return redirect('home')
         else:
             messages.error(request, "Ве молам поправете ги грешките во формата.")

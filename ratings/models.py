@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Rating(models.Model):
+    appointment_id = models.IntegerField(unique = True)
     doctor = models.ForeignKey(
         'accounts.Doctor',
         on_delete = models.CASCADE,
@@ -30,6 +31,8 @@ class Rating(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        unique_together = ['appointment_id', 'doctor', 'hospital']  # Extra protection
     
     def __str__(self):
         return f"Рецензија за Докторот: {self.doctor_rating}, Клиниката: {self.hospital_rating}"
+        
