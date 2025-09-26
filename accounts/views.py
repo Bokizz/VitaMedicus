@@ -16,7 +16,7 @@ from email.mime.text import MIMEText
 from datetime import timedelta
 
 from .serializers import *
-from .models import PhoneVerification,Doctor
+from .models import MailVerification,Doctor
 from appointments.models import Appointment
 from hospitals.models import DoctorDepartmentAssignment, DoctorServiceAssignment, Service
 from .permissions import NotBlacklisted
@@ -290,7 +290,7 @@ class VerifyPhoneView(generics.GenericAPIView):
         phone = serializer.validated_data['phone_number']
 
         try:
-            verification_code = PhoneVerification.objects.get(
+            verification_code = MailVerification.objects.get(
                 user__phone_number=phone,
                 code=code,
                 is_used=False
@@ -309,7 +309,7 @@ class VerifyPhoneView(generics.GenericAPIView):
             user.save()
 
             return Response({"message": "Успешно се верифициравте!"})
-        except PhoneVerification.DoesNotExist:
+        except MailVerification.DoesNotExist:
             return Response(
                 {"error": "Невалиден код."},
                 status=status.HTTP_400_BAD_REQUEST
@@ -346,7 +346,7 @@ class ResendSMSCodeView(generics.GenericAPIView):
                 status=status.HTTP_200_OK
             )
 
-        existing = PhoneVerification.objects.filter(
+        existing = MailVerification.objects.filter(
             user=user, is_used=False
         ).order_by('-created_at').first()
 
@@ -361,7 +361,7 @@ class ResendSMSCodeView(generics.GenericAPIView):
 
         code = get_random_string(6, allowed_chars='0123456789')
         expires_at = timezone.now() + timedelta(minutes=15)
-        PhoneVerification.objects.create(user=user, code=code, expires_at=expires_at)
+        MailVerification.objects.create(user=user, code=code, expires_at=expires_at)
         from_email = settings.EMAIL_HOST_USER
         # to_email = user.email  # za produkcija vaka
 

@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.conf import settings
 
 from datetime import timedelta
-from .models import PhoneVerification, User, Doctor, PasswordResetToken
+from .models import MailVerification, User, Doctor, PasswordResetToken
 from hospitals.models import *
 import re
 import smtplib
@@ -65,7 +65,7 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
         user.save()
 
         code = get_random_string(6,allowed_chars = '0123456789')
-        PhoneVerification.objects.create(
+        MailVerification.objects.create(
             user = user,
             code = code,
             created_at = timezone.now(),
@@ -243,7 +243,7 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         code = get_random_string(6,allowed_chars = '0123456789')
-        PhoneVerification.objects.create(
+        MailVerification.objects.create(
             user = user,
             code = code,
             created_at = timezone.now(),

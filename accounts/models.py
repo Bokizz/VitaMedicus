@@ -79,7 +79,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}" 
     
-class PhoneVerification(models.Model):
+class MailVerification(models.Model):
     user = models.ForeignKey(User, on_delete = models.CASCADE)
     code = models.CharField(max_length = 6)
     created_at = models.DateTimeField(auto_now_add = True)
