@@ -13,6 +13,7 @@ def delete_expired_appointments():
     count = expired.count()
     expired.delete()
     return f"{count} expired appointments deleted."
+
 @shared_task
 def generate_daily_slots():
     today = timezone.localdate()
@@ -92,3 +93,58 @@ def generate_daily_slots():
     print(f"Date range: {start_date} to {end_date}")
     
     return total_generated
+
+@shared_task
+def monitor_appointment_limits():
+    """Monitor appointment limits and track violations"""
+    today = timezone.now().date()
+    
+    patients = User.objects.filter(is_blacklisted=False)
+    
+    # You might want to create a UserProfile model to track violations
+    # For now, we'll just log the violations
+    
+    for patient in patients:
+        # Calculate current week
+        week_start = today - timedelta(days=today.weekday())
+        week_end = week_start + timedelta(days=6)
+        
+        # Count today's appointments
+        today_count = Appointment.objects.filter(
+            patient=patient,
+            date=today,
+            booked=True
+        ).count()
+        
+        # Count this week's appointments
+        week_count = Appointment.objects.filter(
+            patient=patient,
+            date__gte=week_start,
+            date__lte=week_end,
+            booked=True
+        ).count()
+        
+        # Log violations
+        if today_count > 3:
+            logger.warning(
+                f'Patient {patient.phone_number} exceeded daily limit: {today_count}/3 appointments on {today}'
+                patient.violation_count = patient.violation_count + 1
+            )
+        
+        if week_count > 10:
+            logger.warning(
+                f'Patient {patient.phone_number} exceeded weekly limit: {week_count}/10 appointments for week {week_start} to {week_end}'
+                patient.violation_count = patient.violation_count + 1
+            )
+        if patient.violation_count > 6:
+            patient.is_blacklisted = True
+
+@shared_task
+def auto_confirm_appointments():
+    """Auto-confirm booked appointments"""
+    appointments = Appointment.objects.filter(booked=True, status='pending')
+    
+    for appointment in appointments:
+        appointment.status = 'confirmed'
+        appointment.save()
+        logger.info(f'Auto-confirmed appointment {appointment.id}')

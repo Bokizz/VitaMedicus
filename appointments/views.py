@@ -36,6 +36,25 @@ def authentication_required(view_func):
 
 @authentication_required    
 def book_appointment_page(request):
+    if not request.user.is_blacklisted:
+        today = timezone.now().date()
+        week_start = today - timedelta(days=today.weekday())  # Monday
+        week_end = week_start + timedelta(days=6)  # Sunday
+        
+        week_count = Appointment.objects.filter(
+            patient=request.user,
+            date__gte=week_start,
+            date__lte=week_end,
+            booked=True
+        ).count()
+        
+        if week_count >= 10:
+            messages.warning(
+                request, 
+                "Го достигнавте лимитот од 10 термини за оваа недела. "
+                "Ве молиме пробајте повторно следната недела."
+            )
+            return redirect('home')
     return render(request,"appointments/appointment.html")
 
 @authentication_required
@@ -342,6 +361,7 @@ class BookAppointmentView(generics.UpdateAPIView):
 logger = logging.getLogger(__name__)
 
 class AvailableTimeSlotsView(APIView):
+    
     def get(self, request):
         try:
             doctor_id = request.GET.get('doctor_id')
@@ -356,6 +376,41 @@ class AvailableTimeSlotsView(APIView):
             
             # Parse the date
             appointment_date = datetime.strptime(selected_date, '%Y-%m-%d').date()
+            if request.user.is_authenticated:
+                # Count appointments for the selected date
+                date_count = Appointment.objects.filter(
+                    patient=request.user,
+                    date=appointment_date,
+                    booked=True
+                ).count()
+                
+                # Count appointments for the week of selected date
+                week_count = Appointment.objects.filter(
+                    patient=request.user,
+                    date__gte=week_start,
+                    date__lte=week_end,
+                    booked=True
+                ).count()
+                
+                # Check daily limit
+                if date_count >= 3:
+                    return Response({
+                        'date': selected_date,
+                        'doctor_id': doctor_id,
+                        'available_slots': [],
+                        'message': "Не можете повеќе термини да закажете за денес",
+                        'limit_reached': True
+                    })
+                
+                # Check weekly limit
+                if week_count >= 10:
+                    return Response({
+                        'date': selected_date,
+                        'doctor_id': doctor_id,
+                        'available_slots': [],
+                        'message': "Го достигнавте лимитот од 10 термини за оваа недела",
+                        'limit_reached': True
+                    })
             
             logger.info(f"Looking for appointments for doctor {doctor_id} on {appointment_date}")
             
