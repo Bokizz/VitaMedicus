@@ -49,6 +49,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     share_info = models.BooleanField(default = False)
     
+    violation_count = models.PositiveIntegerField(default=0)
     is_blacklisted = models.BooleanField(default = False)
     date_joined = models.DateTimeField(default=timezone.now)
     
