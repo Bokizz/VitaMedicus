@@ -2,6 +2,27 @@
 {% load static %}
 
 {% block content %}
+<div class="container mt-3">
+    <div class="alert alert-info">
+        <h6>Debug Information:</h6>
+        <p><strong>week_range:</strong> "{{ week_range }}"</p>
+        <p><strong>week_options length:</strong> {{ week_options|length }}</p>
+        <p><strong>selected_week:</strong> {{ selected_week }}</p>
+        <p><strong>Current URL:</strong> {{ request.get_full_path }}</p>
+        {% if week_options %}
+        <p><strong>Week Options:</strong></p>
+        <ul>
+            {% for week in week_options %}
+            <li>
+                "{{ week.label }}" | Value: "{{ week.value }}" | Selected: {{ week.selected }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p><strong>No week options available!</strong></p>
+        {% endif %}
+    </div>
+</div>
 <div class="container py-5">
     <div class="row mb-4">
         <div class="col-12">

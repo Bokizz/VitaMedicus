@@ -126,15 +126,15 @@ def monitor_appointment_limits():
         
         # Log violations
         if today_count > 3:
+            patient.violation_count = patient.violation_count + 1
             logger.warning(
                 f'Patient {patient.phone_number} exceeded daily limit: {today_count}/3 appointments on {today}'
-                patient.violation_count = patient.violation_count + 1
             )
         
         if week_count > 10:
+            patient.violation_count = patient.violation_count + 1
             logger.warning(
                 f'Patient {patient.phone_number} exceeded weekly limit: {week_count}/10 appointments for week {week_start} to {week_end}'
-                patient.violation_count = patient.violation_count + 1
             )
         if patient.violation_count > 6:
             patient.is_blacklisted = True

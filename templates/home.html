@@ -8,7 +8,7 @@
             <!-- Search form on the left -->
             <form class="col-12 col-lg-auto mb-2 mb-lg-0 me-lg-auto" method="GET" action="{% url 'search-ratings' %}">
                 <div class="input-group">
-                    <input type="search" name="q" class="form-control" placeholder="Пребарај доктори или клиники..." aria-label="Search">
+                    <input type="search" name="q" class="form-control" placeholder="Пребарај..." aria-label="Search">
                     <button type="submit" class="btn btn-outline-light">
                         <i class="bi bi-search"></i>
                     </button>
@@ -96,23 +96,14 @@
                                                                 Детали за пациентот
                                                             </a>
                                                         {% endif %}
-                                                    {% if appointment.status == 'pending' %}
-                                                    <button class="btn btn-outline-success btn-sm me-2 confirm-appointment" 
-                                                            data-appointment-id="{{ appointment.id }}">
-                                                        Потврди
-                                                    </button>
-                                                    <button class="btn btn-outline-danger btn-sm cancel-appointment" 
-                                                            data-appointment-id="{{ appointment.id }}">
-                                                        Откажи
-                                                    </button>
-                                                    {% elif appointment.status == 'confirmed' %}
+                                                    {% if appointment.status == 'confirmed' %}
                                                     <a href="{% url 'complete-appointment' appointment.id %}" class="btn btn-outline-primary btn-sm me-2 complete-appointment">
                                                         Заврши
                                                     </a>
-                                                    <button class="btn btn-outline-danger btn-sm cancel-appointment" 
+                                                    <!-- <button class="btn btn-outline-danger btn-sm cancel-appointment" 
                                                             data-appointment-id="{{ appointment.id }}">
                                                         Откажи
-                                                    </button>
+                                                    </button> -->
                                                     {% endif %}
                                                 </div>
                                             </div>
@@ -152,7 +143,7 @@
                                                     </p>
                                                 </div>
                                                 <div class="text-end">
-                                                    {% if appointment.status != 'cancelled' and appointment.can_cancel %}
+                                                    {% if appointment.status != 'cancelled' and appointment.status != 'finished' and appointment.can_cancel %}
                                                     <button class="btn btn-outline-danger btn-sm" data-appointment-id="{{ appointment.id }}">Откажи</button>
                                                     {% elif appointment.status == 'finished' and appointment.is_rated == False %}
                                                     <a href="{% url 'rate' appointment.id %}" class="btn btn-outline-info btn-sm me-2">
