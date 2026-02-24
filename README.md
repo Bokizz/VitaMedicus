@@ -21,9 +21,9 @@ VitaMedicus is a full-stack healthcare web application designed to manage hospit
 ## Tech Stack
 
 - **Backend:** Django, Django REST Framework  
-- **Database:** SQLite (development)  
+- **Database:** PostgreSQL
 - **Authentication:** Django Authentication System  
-- **PDF Generation:** ReportLab  
+- **PDF Generation:** FPDF open source tool 
 - **Data Handling:** Django ORM  
 
 ---
